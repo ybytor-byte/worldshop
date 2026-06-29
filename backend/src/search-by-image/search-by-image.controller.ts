@@ -31,19 +31,15 @@ export class SearchByImageController {
       const base64 = file.buffer.toString('base64');
       const product = await this.service.identifyProduct(base64);
 
-      if (!product.brand && !product.model) {
-        return {
-          identified: false,
-          message: 'Не удалось распознать товар на фото',
-          shops: [],
-        };
+      let query = `${product.brand} ${product.model}`.trim();
+      if (!query || query.length < 3) {
+        query = `товар по фото ${Date.now()}`;
       }
 
-      const query = `${product.brand} ${product.model}`.trim();
       const shops = this.service.getShopLinks(query);
 
       return {
-        identified: true,
+        identified: !!product.brand || !!product.model,
         brand: product.brand,
         model: product.model,
         description: product.description,
@@ -51,10 +47,12 @@ export class SearchByImageController {
         shops,
       };
     } catch (err: any) {
+      const query = `товар ${Date.now()}`;
+      const shops = this.service.getShopLinks(query);
       return {
         identified: false,
         message: `Ошибка ИИ: ${err?.message || 'неизвестная'}`,
-        shops: [],
+        shops,
       };
     }
   }

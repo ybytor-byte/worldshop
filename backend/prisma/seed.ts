@@ -17,6 +17,18 @@ interface SeedProduct {
   offers: SeedOffer[];
 }
 
+function searchUrl(shop: string, query: string): string {
+  const q = encodeURIComponent(query);
+  const map: Record<string, string> = {
+    Ozon: `https://www.ozon.ru/search/?text=${q}`,
+    Wildberries: `https://www.wildberries.ru/catalog/0/search.aspx?search=${q}`,
+    DNS: `https://www.dns-shop.ru/search/?q=${q}`,
+    'М.Видео': `https://www.mvideo.ru/product-list-page?q=${q}`,
+    'Яндекс.Маркет': `https://market.yandex.ru/search?text=${q}`,
+  };
+  return map[shop] || `https://yandex.ru/search/?text=${q}`;
+}
+
 const seedData: SeedProduct[] = [
   {
     brand: 'Apple',
@@ -28,21 +40,21 @@ const seedData: SeedProduct[] = [
       { name: '1TB', specs: { ram: '8GB', storage: '1TB' } },
     ],
     offers: [
-      { shop: 'Ozon', variant: '256GB', price: 112990, url: 'https://www.ozon.ru/product/1551432951/' },
-      { shop: 'Ozon', variant: '512GB', price: 134990, url: 'https://www.ozon.ru/product/1551432965/' },
-      { shop: 'Ozon', variant: '1TB', price: 159990, url: 'https://www.ozon.ru/product/1551432979/' },
-      { shop: 'Wildberries', variant: '256GB', price: 109999, url: 'https://www.wildberries.ru/catalog/192231151/detail.aspx' },
-      { shop: 'Wildberries', variant: '512GB', price: 131999, url: 'https://www.wildberries.ru/catalog/192231155/detail.aspx' },
-      { shop: 'Wildberries', variant: '1TB', price: 157999, url: 'https://www.wildberries.ru/catalog/192231159/detail.aspx' },
-      { shop: 'DNS', variant: '256GB', price: 115999, url: 'https://www.dns-shop.ru/product/8d5e3e0c4a4e2b77/' },
-      { shop: 'DNS', variant: '512GB', price: 137999, url: 'https://www.dns-shop.ru/product/8d5e3e0c4a4e2b78/' },
-      { shop: 'DNS', variant: '1TB', price: 162999, url: 'https://www.dns-shop.ru/product/8d5e3e0c4a4e2b79/' },
-      { shop: 'М.Видео', variant: '256GB', price: 113999, url: 'https://www.mvideo.ru/products/smartfon-apple-iphone-15-pro-max-256gb-30137211' },
-      { shop: 'М.Видео', variant: '512GB', price: 135999, url: 'https://www.mvideo.ru/products/smartfon-apple-iphone-15-pro-max-512gb-30137212' },
-      { shop: 'М.Видео', variant: '1TB', price: 161999, url: 'https://www.mvideo.ru/products/smartfon-apple-iphone-15-pro-max-1tb-30137213' },
-      { shop: 'Яндекс.Маркет', variant: '256GB', price: 107990, url: 'https://market.yandex.ru/product--iphone-15-pro-max-256gb/1806278001' },
-      { shop: 'Яндекс.Маркет', variant: '512GB', price: 129990, url: 'https://market.yandex.ru/product--iphone-15-pro-max-512gb/1806278002' },
-      { shop: 'Яндекс.Маркет', variant: '1TB', price: 155990, url: 'https://market.yandex.ru/product--iphone-15-pro-max-1tb/1806278003' },
+      { shop: 'Ozon', variant: '256GB', price: 112990, url: searchUrl('Ozon', 'iPhone 15 Pro Max 256GB') },
+      { shop: 'Ozon', variant: '512GB', price: 134990, url: searchUrl('Ozon', 'iPhone 15 Pro Max 512GB') },
+      { shop: 'Ozon', variant: '1TB', price: 159990, url: searchUrl('Ozon', 'iPhone 15 Pro Max 1TB') },
+      { shop: 'Wildberries', variant: '256GB', price: 109999, url: searchUrl('Wildberries', 'iPhone 15 Pro Max 256GB') },
+      { shop: 'Wildberries', variant: '512GB', price: 131999, url: searchUrl('Wildberries', 'iPhone 15 Pro Max 512GB') },
+      { shop: 'Wildberries', variant: '1TB', price: 157999, url: searchUrl('Wildberries', 'iPhone 15 Pro Max 1TB') },
+      { shop: 'DNS', variant: '256GB', price: 115999, url: searchUrl('DNS', 'iPhone 15 Pro Max 256GB') },
+      { shop: 'DNS', variant: '512GB', price: 137999, url: searchUrl('DNS', 'iPhone 15 Pro Max 512GB') },
+      { shop: 'DNS', variant: '1TB', price: 162999, url: searchUrl('DNS', 'iPhone 15 Pro Max 1TB') },
+      { shop: 'М.Видео', variant: '256GB', price: 113999, url: searchUrl('М.Видео', 'iPhone 15 Pro Max 256GB') },
+      { shop: 'М.Видео', variant: '512GB', price: 135999, url: searchUrl('М.Видео', 'iPhone 15 Pro Max 512GB') },
+      { shop: 'М.Видео', variant: '1TB', price: 161999, url: searchUrl('М.Видео', 'iPhone 15 Pro Max 1TB') },
+      { shop: 'Яндекс.Маркет', variant: '256GB', price: 107990, url: searchUrl('Яндекс.Маркет', 'iPhone 15 Pro Max 256GB') },
+      { shop: 'Яндекс.Маркет', variant: '512GB', price: 129990, url: searchUrl('Яндекс.Маркет', 'iPhone 15 Pro Max 512GB') },
+      { shop: 'Яндекс.Маркет', variant: '1TB', price: 155990, url: searchUrl('Яндекс.Маркет', 'iPhone 15 Pro Max 1TB') },
     ],
   },
   {
@@ -54,14 +66,14 @@ const seedData: SeedProduct[] = [
       { name: 'Премиум', specs: { attachments: '8 насадок', color: 'Никель/Медь' } },
     ],
     offers: [
-      { shop: 'Ozon', variant: 'Стандарт', price: 59990, url: 'https://www.ozon.ru/product/394825711/' },
-      { shop: 'Ozon', variant: 'Премиум', price: 69990, url: 'https://www.ozon.ru/product/394825712/' },
-      { shop: 'Wildberries', variant: 'Стандарт', price: 57999, url: 'https://www.wildberries.ru/catalog/15123456/detail.aspx' },
-      { shop: 'Wildberries', variant: 'Премиум', price: 67999, url: 'https://www.wildberries.ru/catalog/15123457/detail.aspx' },
-      { shop: 'М.Видео', variant: 'Стандарт', price: 61999, url: 'https://www.mvideo.ru/products/stailer-dyson-airwrap-complete-long-30051234' },
-      { shop: 'М.Видео', variant: 'Премиум', price: 71999, url: 'https://www.mvideo.ru/products/stailer-dyson-airwrap-complete-long-premium-30051235' },
-      { shop: 'Яндекс.Маркет', variant: 'Стандарт', price: 55990, url: 'https://market.yandex.ru/product--dyson-airwrap-complete-long/1736254001' },
-      { shop: 'Яндекс.Маркет', variant: 'Премиум', price: 65990, url: 'https://market.yandex.ru/product--dyson-airwrap-premium/1736254002' },
+      { shop: 'Ozon', variant: 'Стандарт', price: 59990, url: searchUrl('Ozon', 'Dyson Airwrap Complete Long') },
+      { shop: 'Ozon', variant: 'Премиум', price: 69990, url: searchUrl('Ozon', 'Dyson Airwrap Complete Long премиум') },
+      { shop: 'Wildberries', variant: 'Стандарт', price: 57999, url: searchUrl('Wildberries', 'Dyson Airwrap') },
+      { shop: 'Wildberries', variant: 'Премиум', price: 67999, url: searchUrl('Wildberries', 'Dyson Airwrap премиум') },
+      { shop: 'М.Видео', variant: 'Стандарт', price: 61999, url: searchUrl('М.Видео', 'Dyson Airwrap Complete Long') },
+      { shop: 'М.Видео', variant: 'Премиум', price: 71999, url: searchUrl('М.Видео', 'Dyson Airwrap премиум') },
+      { shop: 'Яндекс.Маркет', variant: 'Стандарт', price: 55990, url: searchUrl('Яндекс.Маркет', 'Dyson Airwrap') },
+      { shop: 'Яндекс.Маркет', variant: 'Премиум', price: 65990, url: searchUrl('Яндекс.Маркет', 'Dyson Airwrap премиум') },
     ],
   },
   {
@@ -74,18 +86,18 @@ const seedData: SeedProduct[] = [
       { name: 'Midnight Blue', specs: { color: 'Тёмно-синий' } },
     ],
     offers: [
-      { shop: 'Ozon', variant: 'Чёрные', price: 27990, url: 'https://www.ozon.ru/product/526384526/' },
-      { shop: 'Ozon', variant: 'Серебристые', price: 27990, url: 'https://www.ozon.ru/product/526384527/' },
-      { shop: 'Ozon', variant: 'Midnight Blue', price: 28990, url: 'https://www.ozon.ru/product/526384528/' },
-      { shop: 'Wildberries', variant: 'Чёрные', price: 26999, url: 'https://www.wildberries.ru/catalog/12345678/detail.aspx' },
-      { shop: 'Wildberries', variant: 'Серебристые', price: 26999, url: 'https://www.wildberries.ru/catalog/12345679/detail.aspx' },
-      { shop: 'DNS', variant: 'Чёрные', price: 28999, url: 'https://www.dns-shop.ru/product/8a1b2c3d4e5f/' },
-      { shop: 'DNS', variant: 'Серебристые', price: 28999, url: 'https://www.dns-shop.ru/product/8a1b2c3d4e5g/' },
-      { shop: 'М.Видео', variant: 'Чёрные', price: 29999, url: 'https://www.mvideo.ru/products/naushniki-sony-wh-1000xm5-black-30012345' },
-      { shop: 'М.Видео', variant: 'Серебристые', price: 29999, url: 'https://www.mvideo.ru/products/naushniki-sony-wh-1000xm5-silver-30012346' },
-      { shop: 'Яндекс.Маркет', variant: 'Чёрные', price: 25990, url: 'https://market.yandex.ru/product--sony-wh-1000xm5-black/1725254001' },
-      { shop: 'Яндекс.Маркет', variant: 'Серебристые', price: 25990, url: 'https://market.yandex.ru/product--sony-wh-1000xm5-silver/1725254002' },
-      { shop: 'Яндекс.Маркет', variant: 'Midnight Blue', price: 26990, url: 'https://market.yandex.ru/product--sony-wh-1000xm5-midnight-blue/1725254003' },
+      { shop: 'Ozon', variant: 'Чёрные', price: 27990, url: searchUrl('Ozon', 'Sony WH-1000XM5') },
+      { shop: 'Ozon', variant: 'Серебристые', price: 27990, url: searchUrl('Ozon', 'Sony WH-1000XM5') },
+      { shop: 'Ozon', variant: 'Midnight Blue', price: 28990, url: searchUrl('Ozon', 'Sony WH-1000XM5') },
+      { shop: 'Wildberries', variant: 'Чёрные', price: 26999, url: searchUrl('Wildberries', 'Sony WH-1000XM5') },
+      { shop: 'Wildberries', variant: 'Серебристые', price: 26999, url: searchUrl('Wildberries', 'Sony WH-1000XM5') },
+      { shop: 'DNS', variant: 'Чёрные', price: 28999, url: searchUrl('DNS', 'Sony WH-1000XM5') },
+      { shop: 'DNS', variant: 'Серебристые', price: 28999, url: searchUrl('DNS', 'Sony WH-1000XM5') },
+      { shop: 'М.Видео', variant: 'Чёрные', price: 29999, url: searchUrl('М.Видео', 'Sony WH-1000XM5') },
+      { shop: 'М.Видео', variant: 'Серебристые', price: 29999, url: searchUrl('М.Видео', 'Sony WH-1000XM5') },
+      { shop: 'Яндекс.Маркет', variant: 'Чёрные', price: 25990, url: searchUrl('Яндекс.Маркет', 'Sony WH-1000XM5') },
+      { shop: 'Яндекс.Маркет', variant: 'Серебристые', price: 25990, url: searchUrl('Яндекс.Маркет', 'Sony WH-1000XM5') },
+      { shop: 'Яндекс.Маркет', variant: 'Midnight Blue', price: 26990, url: searchUrl('Яндекс.Маркет', 'Sony WH-1000XM5') },
     ],
   },
   {
@@ -97,10 +109,10 @@ const seedData: SeedProduct[] = [
       { name: 'Medium (30см)', specs: { size: '30см', color: 'Чёрный' } },
     ],
     offers: [
-      { shop: 'Яндекс.Маркет', variant: 'Small (25см)', price: 789000, url: 'https://market.yandex.ru/search?text=Chanel+Classic+Double+Flap+Bag' },
-      { shop: 'Яндекс.Маркет', variant: 'Medium (30см)', price: 899000, url: 'https://market.yandex.ru/search?text=Chanel+Classic+Double+Flap+Bag+30' },
-      { shop: 'Ozon', variant: 'Small (25см)', price: 825000, url: 'https://www.ozon.ru/search/?text=Chanel+Classic+Double+Flap+25' },
-      { shop: 'Ozon', variant: 'Medium (30см)', price: 945000, url: 'https://www.ozon.ru/search/?text=Chanel+Classic+Double+Flap+30' },
+      { shop: 'Яндекс.Маркет', variant: 'Small (25см)', price: 789000, url: searchUrl('Яндекс.Маркет', 'Chanel Classic Double Flap Bag') },
+      { shop: 'Яндекс.Маркет', variant: 'Medium (30см)', price: 899000, url: searchUrl('Яндекс.Маркет', 'Chanel Classic Double Flap Bag 30') },
+      { shop: 'Ozon', variant: 'Small (25см)', price: 825000, url: searchUrl('Ozon', 'Chanel Classic Double Flap') },
+      { shop: 'Ozon', variant: 'Medium (30см)', price: 945000, url: searchUrl('Ozon', 'Chanel Classic Double Flap') },
     ],
   },
   {
@@ -113,18 +125,18 @@ const seedData: SeedProduct[] = [
       { name: '1TB', specs: { ram: '12GB', storage: '1TB' } },
     ],
     offers: [
-      { shop: 'Ozon', variant: '256GB', price: 94990, url: 'https://www.ozon.ru/product/1551432980/' },
-      { shop: 'Ozon', variant: '512GB', price: 109990, url: 'https://www.ozon.ru/product/1551432981/' },
-      { shop: 'Ozon', variant: '1TB', price: 134990, url: 'https://www.ozon.ru/product/1551432982/' },
-      { shop: 'Wildberries', variant: '256GB', price: 92999, url: 'https://www.wildberries.ru/catalog/192231160/detail.aspx' },
-      { shop: 'Wildberries', variant: '512GB', price: 107999, url: 'https://www.wildberries.ru/catalog/192231161/detail.aspx' },
-      { shop: 'Wildberries', variant: '1TB', price: 132999, url: 'https://www.wildberries.ru/catalog/192231162/detail.aspx' },
-      { shop: 'DNS', variant: '256GB', price: 96999, url: 'https://www.dns-shop.ru/product/9e5f3e0c4a4e2c99/' },
-      { shop: 'DNS', variant: '512GB', price: 111999, url: 'https://www.dns-shop.ru/product/9e5f3e0c4a4e2c98/' },
-      { shop: 'М.Видео', variant: '256GB', price: 95999, url: 'https://www.mvideo.ru/products/smartfon-samsung-galaxy-s24-ultra-256gb-30137221' },
-      { shop: 'М.Видео', variant: '512GB', price: 110999, url: 'https://www.mvideo.ru/products/smartfon-samsung-galaxy-s24-ultra-512gb-30137222' },
-      { shop: 'Яндекс.Маркет', variant: '256GB', price: 89990, url: 'https://market.yandex.ru/product--samsung-galaxy-s24-ultra-256gb/1806279001' },
-      { shop: 'Яндекс.Маркет', variant: '512GB', price: 104990, url: 'https://market.yandex.ru/product--samsung-galaxy-s24-ultra-512gb/1806279002' },
+      { shop: 'Ozon', variant: '256GB', price: 94990, url: searchUrl('Ozon', 'Samsung Galaxy S24 Ultra 256GB') },
+      { shop: 'Ozon', variant: '512GB', price: 109990, url: searchUrl('Ozon', 'Samsung Galaxy S24 Ultra 512GB') },
+      { shop: 'Ozon', variant: '1TB', price: 134990, url: searchUrl('Ozon', 'Samsung Galaxy S24 Ultra 1TB') },
+      { shop: 'Wildberries', variant: '256GB', price: 92999, url: searchUrl('Wildberries', 'Samsung Galaxy S24 Ultra') },
+      { shop: 'Wildberries', variant: '512GB', price: 107999, url: searchUrl('Wildberries', 'Samsung Galaxy S24 Ultra') },
+      { shop: 'Wildberries', variant: '1TB', price: 132999, url: searchUrl('Wildberries', 'Samsung Galaxy S24 Ultra') },
+      { shop: 'DNS', variant: '256GB', price: 96999, url: searchUrl('DNS', 'Samsung Galaxy S24 Ultra 256GB') },
+      { shop: 'DNS', variant: '512GB', price: 111999, url: searchUrl('DNS', 'Samsung Galaxy S24 Ultra 512GB') },
+      { shop: 'М.Видео', variant: '256GB', price: 95999, url: searchUrl('М.Видео', 'Samsung Galaxy S24 Ultra 256GB') },
+      { shop: 'М.Видео', variant: '512GB', price: 110999, url: searchUrl('М.Видео', 'Samsung Galaxy S24 Ultra 512GB') },
+      { shop: 'Яндекс.Маркет', variant: '256GB', price: 89990, url: searchUrl('Яндекс.Маркет', 'Samsung Galaxy S24 Ultra 256GB') },
+      { shop: 'Яндекс.Маркет', variant: '512GB', price: 104990, url: searchUrl('Яндекс.Маркет', 'Samsung Galaxy S24 Ultra 512GB') },
     ],
   },
   {
@@ -136,32 +148,25 @@ const seedData: SeedProduct[] = [
       { name: 'Плюс станция', specs: { battery: '5200mAh', self_cleaning: 'Есть', color: 'Чёрный' } },
     ],
     offers: [
-      { shop: 'Ozon', variant: 'Стандарт', price: 32990, url: 'https://www.ozon.ru/product/627384910/' },
-      { shop: 'Ozon', variant: 'Плюс станция', price: 42990, url: 'https://www.ozon.ru/product/627384911/' },
-      { shop: 'Wildberries', variant: 'Стандарт', price: 31999, url: 'https://www.wildberries.ru/catalog/17123456/detail.aspx' },
-      { shop: 'Wildberries', variant: 'Плюс станция', price: 41999, url: 'https://www.wildberries.ru/catalog/17123457/detail.aspx' },
-      { shop: 'DNS', variant: 'Стандарт', price: 34999, url: 'https://www.dns-shop.ru/product/7b2c3d4e5f6a/' },
-      { shop: 'DNS', variant: 'Плюс станция', price: 44999, url: 'https://www.dns-shop.ru/product/7b2c3d4e5f6b/' },
-      { shop: 'Яндекс.Маркет', variant: 'Стандарт', price: 30990, url: 'https://market.yandex.ru/product--xiaomi-robot-vacuum-x20/1738255001' },
-      { shop: 'Яндекс.Маркет', variant: 'Плюс станция', price: 40990, url: 'https://market.yandex.ru/product--xiaomi-robot-vacuum-x20-plus/1738255002' },
+      { shop: 'Ozon', variant: 'Стандарт', price: 32990, url: searchUrl('Ozon', 'Xiaomi Robot Vacuum X20+') },
+      { shop: 'Ozon', variant: 'Плюс станция', price: 42990, url: searchUrl('Ozon', 'Xiaomi Robot Vacuum X20+ станция') },
+      { shop: 'Wildberries', variant: 'Стандарт', price: 31999, url: searchUrl('Wildberries', 'Xiaomi Robot Vacuum X20') },
+      { shop: 'Wildberries', variant: 'Плюс станция', price: 41999, url: searchUrl('Wildberries', 'Xiaomi Robot Vacuum X20+') },
+      { shop: 'DNS', variant: 'Стандарт', price: 34999, url: searchUrl('DNS', 'Xiaomi Robot Vacuum X20+') },
+      { shop: 'DNS', variant: 'Плюс станция', price: 44999, url: searchUrl('DNS', 'Xiaomi Robot Vacuum X20+') },
+      { shop: 'Яндекс.Маркет', variant: 'Стандарт', price: 30990, url: searchUrl('Яндекс.Маркет', 'Xiaomi Robot Vacuum X20') },
+      { shop: 'Яндекс.Маркет', variant: 'Плюс станция', price: 40990, url: searchUrl('Яндекс.Маркет', 'Xiaomi Robot Vacuum X20+') },
     ],
   },
 ];
 
 async function main() {
-  console.log('Seeding database...');
+  console.log('Seeding...');
+  await prisma.offer.deleteMany();
+  await prisma.productScan.deleteMany();
+  await prisma.product.deleteMany();
 
   for (const item of seedData) {
-    const existing = await prisma.product.findFirst({
-      where: { brand: item.brand, model: item.model },
-    });
-
-    if (existing) {
-      console.log(`  Replacing ${item.brand} ${item.model}`);
-      await prisma.offer.deleteMany({ where: { productId: existing.id } });
-      await prisma.product.delete({ where: { id: existing.id } });
-    }
-
     const product = await prisma.product.create({
       data: {
         brand: item.brand,
@@ -169,30 +174,16 @@ async function main() {
         specs: item.specs as any,
         offers: {
           create: item.offers.map((o) => ({
-            shop: o.shop,
-            price: o.price,
-            currency: 'RUB',
-            url: o.url,
-            variant: o.variant,
+            shop: o.shop, price: o.price, currency: 'RUB', url: o.url, variant: o.variant,
           })),
         },
       },
     });
-
-    console.log(`  Created ${item.brand} ${item.model} with ${item.offers.length} offers`);
+    console.log(`  ${item.brand} ${item.model} — ${item.offers.length} offers`);
   }
 
-  const counts = await Promise.all([
-    prisma.product.count(),
-    prisma.offer.count(),
-  ]);
-
+  const counts = await Promise.all([prisma.product.count(), prisma.offer.count()]);
   console.log(`\nDone! ${counts[0]} products, ${counts[1]} offers`);
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+main().catch((e) => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());
