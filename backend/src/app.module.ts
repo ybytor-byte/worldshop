@@ -12,6 +12,7 @@ import { AiModule } from './ai/ai.module';
 import { SearchModule } from './search/search.module';
 import { HermesModule } from './hermes/hermes.module';
 import { SearchByImageModule } from './search-by-image/search-by-image.module';
+import { CpaModule } from './cpa/cpa.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { SearchByImageModule } from './search-by-image/search-by-image.module';
     SearchModule,
     HermesModule,
     SearchByImageModule,
+    CpaModule,
   ],
 })
 export class AppModule {}
