@@ -33,6 +33,7 @@ model Offer {
   id           String   @id @default(uuid())
   productId    String
   product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant      String   @default("")
   shop         String
   price        Float
   currency     String

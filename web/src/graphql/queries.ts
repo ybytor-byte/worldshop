@@ -12,8 +12,8 @@ export const GET_PRODUCTS = gql`
         price
         currency
         url
+        variant
         affiliateUrl
-        scrapedAt
       }
     }
   }
@@ -31,8 +31,8 @@ export const GET_PRODUCT_DETAILS = gql`
         price
         currency
         url
+        variant
         affiliateUrl
-        scrapedAt
       }
     }
   }
