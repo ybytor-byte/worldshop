@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+/* Base layout adjustments for popup window */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  overflow-x: hidden;
+}

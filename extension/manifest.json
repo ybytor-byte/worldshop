@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "WorldShop — Сравнение цен",
+  "version": "1.0.0",
+  "description": "Расширение для автоматического сбора и сравнения цен в российских интернет-магазинах",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.ozon.ru/*",
+    "https://www.wildberries.ru/*",
+    "https://www.dns-shop.ru/*",
+    "https://www.mvideo.ru/*",
+    "https://market.yandex.ru/*",
+    "http://localhost:3001/*",
+    "https://*.world-shop.online/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.ozon.ru/*",
+        "https://www.wildberries.ru/*",
+        "https://www.dns-shop.ru/*",
+        "https://www.mvideo.ru/*",
+        "https://market.yandex.ru/*"
+      ],
+      "js": ["src/content/index.ts"],
+      "css": ["src/content/overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src http://localhost:3001 ws://localhost:3001 'self'"
+  }
+}

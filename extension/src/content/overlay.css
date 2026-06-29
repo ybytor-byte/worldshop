@@ -1,0 +1,4 @@
+/* Overlay CSS placeholder to prevent Vite build failures */
+#worldshop-overlay-widget {
+  all: initial;
+}

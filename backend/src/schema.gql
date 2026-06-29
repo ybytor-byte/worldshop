@@ -1,0 +1,30 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type Offer {
+  affiliateUrl: String
+  currency: String!
+  price: Float!
+  scrapedAt: String
+  shop: String!
+  url: String!
+}
+
+type Product {
+  brand: String!
+  id: ID!
+  model: String!
+  offers: [Offer!]!
+  specs: JSON!
+}
+
+type Query {
+  product(id: ID!): Product
+  products(search: String!): [Product!]!
+}

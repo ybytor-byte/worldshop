@@ -1,0 +1,25 @@
+type Offer {
+  shop: String!
+  price: Float!
+  currency: String!
+  url: String!
+  affiliateUrl: String
+  scrapedAt: String
+}
+
+type Product {
+  id: ID!
+  brand: String!
+  model: String!
+  specs: JSON!
+  offers: [Offer!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Query {
+  product(id: ID!): Product
+  products(search: String!): [Product!]!
+}
+
+scalar JSON
