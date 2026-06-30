@@ -5,6 +5,10 @@ const prisma = new PrismaClient();
 interface SeedOffer {
   shop: string;
   price: number;
+  currency: string;
+  region: string;
+  shippingUSD: number;
+  deliveryDays: string;
   url: string;
   variant: string;
 }
@@ -17,16 +21,42 @@ interface SeedProduct {
   offers: SeedOffer[];
 }
 
-function searchUrl(shop: string, query: string): string {
-  const q = encodeURIComponent(query);
-  const map: Record<string, string> = {
-    Ozon: `https://www.ozon.ru/search/?text=${q}`,
-    Wildberries: `https://www.wildberries.ru/catalog/0/search.aspx?search=${q}`,
-    DNS: `https://www.dns-shop.ru/search/?q=${q}`,
-    'М.Видео': `https://www.mvideo.ru/product-list-page?q=${q}`,
-    'Яндекс.Маркет': `https://market.yandex.ru/search?text=${q}`,
-  };
-  return map[shop] || `https://yandex.ru/search/?text=${q}`;
+const REGION_SHOPS: Record<string, { shop: string; url: (q: string) => string }[]> = {
+  US: [
+    { shop: 'Amazon (USA)', url: (q) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}` },
+    { shop: 'Best Buy', url: (q) => `https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(q)}` },
+  ],
+  EU: [
+    { shop: 'MediaMarkt (DE)', url: (q) => `https://www.mediamarkt.de/de/search.html?query=${encodeURIComponent(q)}` },
+    { shop: 'Fnac (FR)', url: (q) => `https://www.fnac.com/SearchResult/ResultList.aspx?Search=${encodeURIComponent(q)}` },
+  ],
+  ASIA: [
+    { shop: 'AliExpress', url: (q) => `https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(q)}` },
+    { shop: 'JD.com', url: (q) => `https://www.jd.com/search?keyword=${encodeURIComponent(q)}` },
+  ],
+  RU: [
+    { shop: 'Ozon', url: (q) => `https://www.ozon.ru/search/?text=${encodeURIComponent(q)}` },
+    { shop: 'Wildberries', url: (q) => `https://www.wildberries.ru/catalog/0/search.aspx?search=${encodeURIComponent(q)}` },
+    { shop: 'DNS', url: (q) => `https://www.dns-shop.ru/search/?q=${encodeURIComponent(q)}` },
+    { shop: 'М.Видео', url: (q) => `https://www.mvideo.ru/product-list-page?q=${encodeURIComponent(q)}` },
+    { shop: 'Яндекс.Маркет', url: (q) => `https://market.yandex.ru/search?text=${encodeURIComponent(q)}` },
+  ],
+};
+
+const CURRENCIES: Record<string, string> = { US: 'USD', EU: 'EUR', ASIA: 'USD', RU: 'RUB' };
+
+const RATES: Record<string, number> = { US: 1, EU: 0.92, ASIA: 1, RU: 92.5 };
+
+function priceInRegion(priceUSD: number, region: string): number {
+  return Math.round(priceUSD * RATES[region]);
+}
+
+function days(d: number) {
+  return `${d - 3}-${d + 2} дня`;
+}
+
+function randomBetween(min: number, max: number) {
+  return Math.round(min + Math.random() * (max - min));
 }
 
 const seedData: SeedProduct[] = [
@@ -40,79 +70,17 @@ const seedData: SeedProduct[] = [
       { name: '1TB', specs: { ram: '8GB', storage: '1TB' } },
     ],
     offers: [
-      { shop: 'Ozon', variant: '256GB', price: 112990, url: searchUrl('Ozon', 'iPhone 15 Pro Max 256GB') },
-      { shop: 'Ozon', variant: '512GB', price: 134990, url: searchUrl('Ozon', 'iPhone 15 Pro Max 512GB') },
-      { shop: 'Ozon', variant: '1TB', price: 159990, url: searchUrl('Ozon', 'iPhone 15 Pro Max 1TB') },
-      { shop: 'Wildberries', variant: '256GB', price: 109999, url: searchUrl('Wildberries', 'iPhone 15 Pro Max 256GB') },
-      { shop: 'Wildberries', variant: '512GB', price: 131999, url: searchUrl('Wildberries', 'iPhone 15 Pro Max 512GB') },
-      { shop: 'Wildberries', variant: '1TB', price: 157999, url: searchUrl('Wildberries', 'iPhone 15 Pro Max 1TB') },
-      { shop: 'DNS', variant: '256GB', price: 115999, url: searchUrl('DNS', 'iPhone 15 Pro Max 256GB') },
-      { shop: 'DNS', variant: '512GB', price: 137999, url: searchUrl('DNS', 'iPhone 15 Pro Max 512GB') },
-      { shop: 'DNS', variant: '1TB', price: 162999, url: searchUrl('DNS', 'iPhone 15 Pro Max 1TB') },
-      { shop: 'М.Видео', variant: '256GB', price: 113999, url: searchUrl('М.Видео', 'iPhone 15 Pro Max 256GB') },
-      { shop: 'М.Видео', variant: '512GB', price: 135999, url: searchUrl('М.Видео', 'iPhone 15 Pro Max 512GB') },
-      { shop: 'М.Видео', variant: '1TB', price: 161999, url: searchUrl('М.Видео', 'iPhone 15 Pro Max 1TB') },
-      { shop: 'Яндекс.Маркет', variant: '256GB', price: 107990, url: searchUrl('Яндекс.Маркет', 'iPhone 15 Pro Max 256GB') },
-      { shop: 'Яндекс.Маркет', variant: '512GB', price: 129990, url: searchUrl('Яндекс.Маркет', 'iPhone 15 Pro Max 512GB') },
-      { shop: 'Яндекс.Маркет', variant: '1TB', price: 155990, url: searchUrl('Яндекс.Маркет', 'iPhone 15 Pro Max 1TB') },
-    ],
-  },
-  {
-    brand: 'Dyson',
-    model: 'Airwrap Complete Long',
-    specs: { type: 'Стайлер', power: '1300W', heat: '3 режима', warranty: '2 года' },
-    variants: [
-      { name: 'Стандарт', specs: { attachments: '6 насадок', color: 'Никель/Розовое золото' } },
-      { name: 'Премиум', specs: { attachments: '8 насадок', color: 'Никель/Медь' } },
-    ],
-    offers: [
-      { shop: 'Ozon', variant: 'Стандарт', price: 59990, url: searchUrl('Ozon', 'Dyson Airwrap Complete Long') },
-      { shop: 'Ozon', variant: 'Премиум', price: 69990, url: searchUrl('Ozon', 'Dyson Airwrap Complete Long премиум') },
-      { shop: 'Wildberries', variant: 'Стандарт', price: 57999, url: searchUrl('Wildberries', 'Dyson Airwrap') },
-      { shop: 'Wildberries', variant: 'Премиум', price: 67999, url: searchUrl('Wildberries', 'Dyson Airwrap премиум') },
-      { shop: 'М.Видео', variant: 'Стандарт', price: 61999, url: searchUrl('М.Видео', 'Dyson Airwrap Complete Long') },
-      { shop: 'М.Видео', variant: 'Премиум', price: 71999, url: searchUrl('М.Видео', 'Dyson Airwrap премиум') },
-      { shop: 'Яндекс.Маркет', variant: 'Стандарт', price: 55990, url: searchUrl('Яндекс.Маркет', 'Dyson Airwrap') },
-      { shop: 'Яндекс.Маркет', variant: 'Премиум', price: 65990, url: searchUrl('Яндекс.Маркет', 'Dyson Airwrap премиум') },
-    ],
-  },
-  {
-    brand: 'Sony',
-    model: 'WH-1000XM5',
-    specs: { type: 'Беспроводные наушники', noise_cancel: 'Активное', battery: '30 часов', codec: 'LDAC', weight: '250g' },
-    variants: [
-      { name: 'Чёрные', specs: { color: 'Чёрный' } },
-      { name: 'Серебристые', specs: { color: 'Серебристый' } },
-      { name: 'Midnight Blue', specs: { color: 'Тёмно-синий' } },
-    ],
-    offers: [
-      { shop: 'Ozon', variant: 'Чёрные', price: 27990, url: searchUrl('Ozon', 'Sony WH-1000XM5') },
-      { shop: 'Ozon', variant: 'Серебристые', price: 27990, url: searchUrl('Ozon', 'Sony WH-1000XM5') },
-      { shop: 'Ozon', variant: 'Midnight Blue', price: 28990, url: searchUrl('Ozon', 'Sony WH-1000XM5') },
-      { shop: 'Wildberries', variant: 'Чёрные', price: 26999, url: searchUrl('Wildberries', 'Sony WH-1000XM5') },
-      { shop: 'Wildberries', variant: 'Серебристые', price: 26999, url: searchUrl('Wildberries', 'Sony WH-1000XM5') },
-      { shop: 'DNS', variant: 'Чёрные', price: 28999, url: searchUrl('DNS', 'Sony WH-1000XM5') },
-      { shop: 'DNS', variant: 'Серебристые', price: 28999, url: searchUrl('DNS', 'Sony WH-1000XM5') },
-      { shop: 'М.Видео', variant: 'Чёрные', price: 29999, url: searchUrl('М.Видео', 'Sony WH-1000XM5') },
-      { shop: 'М.Видео', variant: 'Серебристые', price: 29999, url: searchUrl('М.Видео', 'Sony WH-1000XM5') },
-      { shop: 'Яндекс.Маркет', variant: 'Чёрные', price: 25990, url: searchUrl('Яндекс.Маркет', 'Sony WH-1000XM5') },
-      { shop: 'Яндекс.Маркет', variant: 'Серебристые', price: 25990, url: searchUrl('Яндекс.Маркет', 'Sony WH-1000XM5') },
-      { shop: 'Яндекс.Маркет', variant: 'Midnight Blue', price: 26990, url: searchUrl('Яндекс.Маркет', 'Sony WH-1000XM5') },
-    ],
-  },
-  {
-    brand: 'Chanel',
-    model: 'Classic Double Flap Bag',
-    specs: { material: 'Кожа ягнёнка', hardware: 'Золото', origin: 'Франция' },
-    variants: [
-      { name: 'Small (25см)', specs: { size: '25см', color: 'Чёрный' } },
-      { name: 'Medium (30см)', specs: { size: '30см', color: 'Чёрный' } },
-    ],
-    offers: [
-      { shop: 'Яндекс.Маркет', variant: 'Small (25см)', price: 789000, url: searchUrl('Яндекс.Маркет', 'Chanel Classic Double Flap Bag') },
-      { shop: 'Яндекс.Маркет', variant: 'Medium (30см)', price: 899000, url: searchUrl('Яндекс.Маркет', 'Chanel Classic Double Flap Bag 30') },
-      { shop: 'Ozon', variant: 'Small (25см)', price: 825000, url: searchUrl('Ozon', 'Chanel Classic Double Flap') },
-      { shop: 'Ozon', variant: 'Medium (30см)', price: 945000, url: searchUrl('Ozon', 'Chanel Classic Double Flap') },
+      ...['256GB', '512GB', '1TB'].flatMap((v) => {
+        const base = { 256: 1199, 512: 1399, 1: 1599 };
+        const usd = base[v === '1TB' ? 1 : (v === '512GB' ? 512 : 256)];
+        const query = `iPhone 15 Pro Max ${v}`;
+        return [
+          ...REGION_SHOPS.US.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd, 'US'), currency: CURRENCIES.US, region: 'US', shippingUSD: 45, deliveryDays: days(12), url: s.url(query), variant: v })),
+          ...REGION_SHOPS.EU.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.08), 'EU'), currency: CURRENCIES.EU, region: 'EU', shippingUSD: 35, deliveryDays: days(10), url: s.url(query), variant: v })),
+          ...REGION_SHOPS.ASIA.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd - 50, 'ASIA'), currency: CURRENCIES.ASIA, region: 'ASIA', shippingUSD: 25, deliveryDays: days(15), url: s.url(query), variant: v })),
+          ...REGION_SHOPS.RU.slice(0, 2).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.25), 'RU'), currency: CURRENCIES.RU, region: 'RU', shippingUSD: 5, deliveryDays: days(3), url: s.url(query), variant: v })),
+        ];
+      }),
     ],
   },
   {
@@ -125,18 +93,72 @@ const seedData: SeedProduct[] = [
       { name: '1TB', specs: { ram: '12GB', storage: '1TB' } },
     ],
     offers: [
-      { shop: 'Ozon', variant: '256GB', price: 94990, url: searchUrl('Ozon', 'Samsung Galaxy S24 Ultra 256GB') },
-      { shop: 'Ozon', variant: '512GB', price: 109990, url: searchUrl('Ozon', 'Samsung Galaxy S24 Ultra 512GB') },
-      { shop: 'Ozon', variant: '1TB', price: 134990, url: searchUrl('Ozon', 'Samsung Galaxy S24 Ultra 1TB') },
-      { shop: 'Wildberries', variant: '256GB', price: 92999, url: searchUrl('Wildberries', 'Samsung Galaxy S24 Ultra') },
-      { shop: 'Wildberries', variant: '512GB', price: 107999, url: searchUrl('Wildberries', 'Samsung Galaxy S24 Ultra') },
-      { shop: 'Wildberries', variant: '1TB', price: 132999, url: searchUrl('Wildberries', 'Samsung Galaxy S24 Ultra') },
-      { shop: 'DNS', variant: '256GB', price: 96999, url: searchUrl('DNS', 'Samsung Galaxy S24 Ultra 256GB') },
-      { shop: 'DNS', variant: '512GB', price: 111999, url: searchUrl('DNS', 'Samsung Galaxy S24 Ultra 512GB') },
-      { shop: 'М.Видео', variant: '256GB', price: 95999, url: searchUrl('М.Видео', 'Samsung Galaxy S24 Ultra 256GB') },
-      { shop: 'М.Видео', variant: '512GB', price: 110999, url: searchUrl('М.Видео', 'Samsung Galaxy S24 Ultra 512GB') },
-      { shop: 'Яндекс.Маркет', variant: '256GB', price: 89990, url: searchUrl('Яндекс.Маркет', 'Samsung Galaxy S24 Ultra 256GB') },
-      { shop: 'Яндекс.Маркет', variant: '512GB', price: 104990, url: searchUrl('Яндекс.Маркет', 'Samsung Galaxy S24 Ultra 512GB') },
+      ...['256GB', '512GB', '1TB'].flatMap((v) => {
+        const base = { 256: 999, 512: 1199, 1: 1399 };
+        const usd = base[v === '1TB' ? 1 : (v === '512GB' ? 512 : 256)];
+        const query = `Samsung Galaxy S24 Ultra ${v}`;
+        return [
+          ...REGION_SHOPS.US.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd, 'US'), currency: CURRENCIES.US, region: 'US', shippingUSD: 40, deliveryDays: days(10), url: s.url(query), variant: v })),
+          ...REGION_SHOPS.EU.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.1), 'EU'), currency: CURRENCIES.EU, region: 'EU', shippingUSD: 30, deliveryDays: days(9), url: s.url(query), variant: v })),
+          ...REGION_SHOPS.ASIA.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd - 40, 'ASIA'), currency: CURRENCIES.ASIA, region: 'ASIA', shippingUSD: 20, deliveryDays: days(14), url: s.url(query), variant: v })),
+          ...REGION_SHOPS.RU.slice(0, 2).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.3), 'RU'), currency: CURRENCIES.RU, region: 'RU', shippingUSD: 5, deliveryDays: days(3), url: s.url(query), variant: v })),
+        ];
+      }),
+    ],
+  },
+  {
+    brand: 'Sony',
+    model: 'WH-1000XM5',
+    specs: { type: 'Беспроводные наушники', noise_cancel: 'Активное', battery: '30 часов', codec: 'LDAC', weight: '250g' },
+    variants: [
+      { name: 'Чёрные', specs: { color: 'Чёрный' } },
+      { name: 'Серебристые', specs: { color: 'Серебристый' } },
+      { name: 'Midnight Blue', specs: { color: 'Тёмно-синий' } },
+    ],
+    offers: [
+      ...[{ v: 'Чёрные', q: 'Sony WH-1000XM5 Black' }, { v: 'Серебристые', q: 'Sony WH-1000XM5 Silver' }, { v: 'Midnight Blue', q: 'Sony WH-1000XM5 Midnight Blue' }].flatMap(({ v, q }) => {
+        const usd = v === 'Midnight Blue' ? 410 : 398;
+        return [
+          ...REGION_SHOPS.US.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd, 'US'), currency: CURRENCIES.US, region: 'US', shippingUSD: 25, deliveryDays: days(10), url: s.url(q), variant: v })),
+          ...REGION_SHOPS.EU.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.05), 'EU'), currency: CURRENCIES.EU, region: 'EU', shippingUSD: 20, deliveryDays: days(8), url: s.url(q), variant: v })),
+          ...REGION_SHOPS.ASIA.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd - 30, 'ASIA'), currency: CURRENCIES.ASIA, region: 'ASIA', shippingUSD: 15, deliveryDays: days(12), url: s.url(q), variant: v })),
+          ...REGION_SHOPS.RU.slice(0, 2).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.15), 'RU'), currency: CURRENCIES.RU, region: 'RU', shippingUSD: 5, deliveryDays: days(2), url: s.url(q), variant: v })),
+        ];
+      }),
+    ],
+  },
+  {
+    brand: 'Dyson',
+    model: 'Airwrap Complete Long',
+    specs: { type: 'Стайлер', power: '1300W', heat: '3 режима', warranty: '2 года' },
+    variants: [
+      { name: 'Стандарт', specs: { attachments: '6 насадок', color: 'Никель/Розовое золото' } },
+      { name: 'Премиум', specs: { attachments: '8 насадок', color: 'Никель/Медь' } },
+    ],
+    offers: [
+      ...[{ v: 'Стандарт', q: 'Dyson Airwrap Complete Long', usd: 599 }, { v: 'Премиум', q: 'Dyson Airwrap Premium', usd: 699 }].flatMap(({ v, q, usd }) => [
+        ...REGION_SHOPS.US.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd, 'US'), currency: CURRENCIES.US, region: 'US', shippingUSD: 35, deliveryDays: days(13), url: s.url(q), variant: v })),
+        ...REGION_SHOPS.EU.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.06), 'EU'), currency: CURRENCIES.EU, region: 'EU', shippingUSD: 28, deliveryDays: days(11), url: s.url(q), variant: v })),
+        ...REGION_SHOPS.ASIA.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd - 40, 'ASIA'), currency: CURRENCIES.ASIA, region: 'ASIA', shippingUSD: 22, deliveryDays: days(16), url: s.url(q), variant: v })),
+        ...REGION_SHOPS.RU.slice(0, 2).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.35), 'RU'), currency: CURRENCIES.RU, region: 'RU', shippingUSD: 5, deliveryDays: days(3), url: s.url(q), variant: v })),
+      ]),
+    ],
+  },
+  {
+    brand: 'Chanel',
+    model: 'Classic Double Flap Bag',
+    specs: { material: 'Кожа ягнёнка', hardware: 'Золото', origin: 'Франция' },
+    variants: [
+      { name: 'Small (25см)', specs: { size: '25см', color: 'Чёрный' } },
+      { name: 'Medium (30см)', specs: { size: '30см', color: 'Чёрный' } },
+    ],
+    offers: [
+      ...[{ v: 'Small (25см)', q: 'Chanel Classic Double Flap Bag 25', usd: 9700 }, { v: 'Medium (30см)', q: 'Chanel Classic Double Flap Bag 30', usd: 10800 }].flatMap(({ v, q, usd }) => [
+        ...REGION_SHOPS.US.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd, 'US'), currency: CURRENCIES.US, region: 'US', shippingUSD: 150, deliveryDays: days(17), url: s.url(q), variant: v })),
+        ...REGION_SHOPS.EU.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 0.95), 'EU'), currency: CURRENCIES.EU, region: 'EU', shippingUSD: 120, deliveryDays: days(14), url: s.url(q), variant: v })),
+        ...REGION_SHOPS.ASIA.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.03), 'ASIA'), currency: CURRENCIES.ASIA, region: 'ASIA', shippingUSD: 100, deliveryDays: days(16), url: s.url(q), variant: v })),
+        ...REGION_SHOPS.RU.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.4), 'RU'), currency: CURRENCIES.RU, region: 'RU', shippingUSD: 10, deliveryDays: days(3), url: s.url(q), variant: v })),
+      ]),
     ],
   },
   {
@@ -148,14 +170,12 @@ const seedData: SeedProduct[] = [
       { name: 'Плюс станция', specs: { battery: '5200mAh', self_cleaning: 'Есть', color: 'Чёрный' } },
     ],
     offers: [
-      { shop: 'Ozon', variant: 'Стандарт', price: 32990, url: searchUrl('Ozon', 'Xiaomi Robot Vacuum X20+') },
-      { shop: 'Ozon', variant: 'Плюс станция', price: 42990, url: searchUrl('Ozon', 'Xiaomi Robot Vacuum X20+ станция') },
-      { shop: 'Wildberries', variant: 'Стандарт', price: 31999, url: searchUrl('Wildberries', 'Xiaomi Robot Vacuum X20') },
-      { shop: 'Wildberries', variant: 'Плюс станция', price: 41999, url: searchUrl('Wildberries', 'Xiaomi Robot Vacuum X20+') },
-      { shop: 'DNS', variant: 'Стандарт', price: 34999, url: searchUrl('DNS', 'Xiaomi Robot Vacuum X20+') },
-      { shop: 'DNS', variant: 'Плюс станция', price: 44999, url: searchUrl('DNS', 'Xiaomi Robot Vacuum X20+') },
-      { shop: 'Яндекс.Маркет', variant: 'Стандарт', price: 30990, url: searchUrl('Яндекс.Маркет', 'Xiaomi Robot Vacuum X20') },
-      { shop: 'Яндекс.Маркет', variant: 'Плюс станция', price: 40990, url: searchUrl('Яндекс.Маркет', 'Xiaomi Robot Vacuum X20+') },
+      ...[{ v: 'Стандарт', q: 'Xiaomi Robot Vacuum X20+', usd: 349 }, { v: 'Плюс станция', q: 'Xiaomi Robot Vacuum X20+ Station', usd: 449 }].flatMap(({ v, q, usd }) => [
+        ...REGION_SHOPS.US.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd, 'US'), currency: CURRENCIES.US, region: 'US', shippingUSD: 30, deliveryDays: days(11), url: s.url(q), variant: v })),
+        ...REGION_SHOPS.EU.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.07), 'EU'), currency: CURRENCIES.EU, region: 'EU', shippingUSD: 25, deliveryDays: days(9), url: s.url(q), variant: v })),
+        ...REGION_SHOPS.ASIA.slice(0, 1).map((s) => ({ shop: s.shop, price: priceInRegion(usd - 50, 'ASIA'), currency: CURRENCIES.ASIA, region: 'ASIA', shippingUSD: 18, deliveryDays: days(14), url: s.url(q), variant: v })),
+        ...REGION_SHOPS.RU.slice(0, 2).map((s) => ({ shop: s.shop, price: priceInRegion(Math.round(usd * 1.3), 'RU'), currency: CURRENCIES.RU, region: 'RU', shippingUSD: 5, deliveryDays: days(3), url: s.url(q), variant: v })),
+      ]),
     ],
   },
 ];
@@ -174,7 +194,14 @@ async function main() {
         specs: item.specs as any,
         offers: {
           create: item.offers.map((o) => ({
-            shop: o.shop, price: o.price, currency: 'RUB', url: o.url, variant: o.variant,
+            shop: o.shop,
+            price: o.price,
+            currency: o.currency,
+            region: o.region,
+            shippingUSD: o.shippingUSD,
+            deliveryDays: o.deliveryDays,
+            url: o.url,
+            variant: o.variant,
           })),
         },
       },

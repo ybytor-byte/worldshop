@@ -4,6 +4,9 @@ type Offer {
   currency: String!
   url: String!
   variant: String!
+  region: String!
+  shippingUSD: Float
+  deliveryDays: String
   affiliateUrl: String
   scrapedAt: String
 }

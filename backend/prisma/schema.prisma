@@ -34,10 +34,13 @@ model Offer {
   productId    String
   product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   variant      String   @default("")
+  region       String   @default("RU")
   shop         String
   price        Float
   currency     String
   url          String
+  shippingUSD  Float?
+  deliveryDays String?
   affiliateUrl String?
   scrapedAt    DateTime @default(now())
   createdAt    DateTime @default(now())

@@ -13,6 +13,9 @@ export const GET_PRODUCTS = gql`
         currency
         url
         variant
+        region
+        shippingUSD
+        deliveryDays
         affiliateUrl
       }
     }
@@ -32,6 +35,9 @@ export const GET_PRODUCT_DETAILS = gql`
         currency
         url
         variant
+        region
+        shippingUSD
+        deliveryDays
         affiliateUrl
       }
     }
