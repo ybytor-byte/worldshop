@@ -32,6 +32,11 @@
       "js": ["src/content/index.ts"],
       "css": ["src/content/overlay.css"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/hover-search.ts"],
+      "run_at": "document_idle"
     }
   ],
   "action": {
