@@ -28,10 +28,13 @@ export default function RootLayout({
       lang="ru"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
+      <body className="min-h-full flex flex-col">
         <Providers>
           {children}
         </Providers>
+        <footer className="text-center text-[10px] py-3 text-theme-muted opacity-50">
+          ePN
+        </footer>
       </body>
     </html>
   );
