@@ -4,7 +4,7 @@
     "buildCommand": "npm run build"
   },
   "deploy": {
-    "startCommand": "node dist/main",
+    "startCommand": "node dist/src/main.js",
     "healthcheckPath": "/docs",
     "restartPolicyType": "ON_FAILURE"
   }

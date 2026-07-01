@@ -72,12 +72,12 @@ function AuthComponent() {
   return (
     <>
       <Header />
-      <main className="flex-1 flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl border border-gray-100">
-          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-2">
+      <main className="flex-1 flex items-center justify-center px-4 py-16 bg-theme-section">
+        <div className="w-full max-w-md rounded-2xl p-8 shadow-theme border bg-theme-card border-theme">
+          <h2 className="text-3xl font-extrabold text-center mb-2 text-theme-primary">
             {mode === 'register' ? 'Создать аккаунт' : 'С возвращением!'}
           </h2>
-          <p className="text-sm text-gray-500 text-center mb-8">
+          <p className="text-sm text-center mb-8 text-theme-secondary">
             {mode === 'register'
               ? 'Зарегистрируйтесь для сохранения истории поисков'
               : 'Войдите в личный кабинет WorldShop'}
@@ -85,30 +85,32 @@ function AuthComponent() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Email</label>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 text-theme-secondary">Email</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg border px-4 py-2.5 text-sm outline-none transition-all focus:ring-2 bg-theme-card border-theme text-theme-primary"
+                style={{ '--tw-ring-color': 'var(--accent-primary)' } as React.CSSProperties}
                 placeholder="you@example.com"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Пароль</label>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 text-theme-secondary">Пароль</label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg border px-4 py-2.5 text-sm outline-none transition-all focus:ring-2 bg-theme-card border-theme text-theme-primary"
+                style={{ '--tw-ring-color': 'var(--accent-primary)' } as React.CSSProperties}
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <div className="rounded-lg bg-red-50 border border-red-100 p-3.5 text-xs font-semibold text-red-600">
+              <div className="rounded-lg p-3.5 text-xs font-semibold" style={{ background: 'color-mix(in srgb, #ef4444 15%, transparent)', border: '1px solid color-mix(in srgb, #ef4444 25%, transparent)', color: '#ef4444' }}>
                 {error}
               </div>
             )}
@@ -116,26 +118,25 @@ function AuthComponent() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="mt-2 w-full py-3 text-sm font-semibold text-white shadow-md transition-all disabled:opacity-50 rounded-lg btn-gradient"
             >
               {loading ? 'Секунду...' : mode === 'register' ? 'Зарегистрироваться' : 'Войти'}
             </button>
           </form>
 
-          {/* Social OAuth Dividers */}
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-gray-200"></div>
+              <div className="w-full" style={{ borderTop: '1px solid var(--border-color)' }}></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2.5 text-gray-500 font-medium">Или войти через</span>
+              <span className="px-2.5 font-medium text-theme-muted" style={{ background: 'var(--bg-card)' }}>Или войти через</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <a
               href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/google`}
-              className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] bg-theme-card border-theme text-theme-secondary hover:bg-theme-card-hover"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -147,7 +148,7 @@ function AuthComponent() {
             </a>
             <a
               href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/yandex`}
-              className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] bg-theme-card border-theme text-theme-secondary hover:bg-theme-card-hover"
             >
               <span className="flex h-5 w-5 items-center justify-center rounded bg-red-600 font-extrabold text-[13px] text-white select-none">Я</span>
               Яндекс
@@ -157,7 +158,7 @@ function AuthComponent() {
           <div className="mt-8 text-center">
             <Link
               href={mode === 'register' ? '/auth?mode=login' : '/auth?mode=register'}
-              className="text-sm font-semibold text-blue-600 hover:underline"
+              className="text-sm font-semibold hover:underline" style={{ color: 'var(--accent-primary)' }}
             >
               {mode === 'register' ? 'Уже зарегистрированы? Войти' : 'Нет аккаунта? Зарегистрироваться'}
             </Link>
@@ -171,8 +172,8 @@ function AuthComponent() {
 export default function AuthPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+      <div className="flex min-h-screen items-center justify-center bg-theme-section">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 spinner-theme"></div>
       </div>
     }>
       <AuthComponent />

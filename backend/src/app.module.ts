@@ -13,6 +13,9 @@ import { SearchModule } from './search/search.module';
 import { HermesModule } from './hermes/hermes.module';
 import { SearchByImageModule } from './search-by-image/search-by-image.module';
 import { CpaModule } from './cpa/cpa.module';
+import { YandexModule } from './yandex/yandex.module';
+import { SupportModule } from './support/support.module';
+import { McpModule } from './mcp/mcp.module';
 
 @Module({
   imports: [
@@ -40,6 +43,9 @@ import { CpaModule } from './cpa/cpa.module';
     HermesModule,
     SearchByImageModule,
     CpaModule,
+    YandexModule,
+    SupportModule,
+    McpModule,
   ],
 })
 export class AppModule {}

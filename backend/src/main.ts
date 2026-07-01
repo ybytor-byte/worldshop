@@ -7,7 +7,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'chrome-extension://*'],
+    origin: [
+      'http://localhost:3000',
+      'https://world-shop.online',
+      'https://web-nine-dun-34.vercel.app',
+      'chrome-extension://*',
+    ],
     credentials: true,
   });
 

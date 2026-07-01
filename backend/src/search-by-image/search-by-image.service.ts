@@ -1,64 +1,66 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
-const SHOP_LINKS = [
-  { name: 'Ozon', url: (q: string) => `https://www.ozon.ru/search/?text=${encodeURIComponent(q)}` },
-  { name: 'Wildberries', url: (q: string) => `https://www.wildberries.ru/catalog/0/search.aspx?search=${encodeURIComponent(q)}` },
-  { name: 'Яндекс.Маркет', url: (q: string) => `https://market.yandex.ru/search?text=${encodeURIComponent(q)}` },
-  { name: 'DNS', url: (q: string) => `https://www.dns-shop.ru/search/?q=${encodeURIComponent(q)}` },
-  { name: 'М.Видео', url: (q: string) => `https://www.mvideo.ru/product-list-page?q=${encodeURIComponent(q)}` },
-  { name: 'AliExpress', url: (q: string) => `https://aliexpress.ru/wholesale?SearchText=${encodeURIComponent(q)}` },
-  { name: 'Citilink', url: (q: string) => `https://www.citilink.ru/search/?text=${encodeURIComponent(q)}` },
-];
+import { SearchService } from '../search/search.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { HermesService } from '../hermes/hermes.service';
+import { SerperLensProvider } from '../search/providers/serper-lens.provider';
 
 @Injectable()
 export class SearchByImageService {
   private readonly logger = new Logger(SearchByImageService.name);
-  private readonly llamaUrl: string;
 
-  constructor(configService: ConfigService) {
-    this.llamaUrl = configService.get<string>('LLAMA_URL') || 'http://localhost:8081';
+  constructor(
+    private configService: ConfigService,
+    private searchService: SearchService,
+    private cloudinary: CloudinaryService,
+    private hermes: HermesService,
+    private serperLens: SerperLensProvider,
+  ) {}
+
+  private async cleanProductName(rawName: string): Promise<string> {
+    return rawName.replace(/купить.*$/i, '').replace(/с доставкой.*$/i, '').replace(/цена.*$/i, '').trim().slice(0, 60);
   }
 
-  async identifyProduct(imageBase64: string): Promise<{ brand: string; model: string; description: string }> {
-    const prompt = `You are a product scanner. Identify the main product in this image. Reply with ONLY 2-3 keywords that describe the product (e.g., 'iphone smartphone apple' or 'dyson hair dryer' or 'sony headphones'). Do not use full sentences.`;
+  async searchByImageUpload(buffer: Buffer, mimetype: string, region = 'RU') {
+    const imageUrl = await this.cloudinary.uploadImage(buffer);
+    this.logger.log(`Image uploaded to Cloudinary: ${imageUrl}`);
 
-    const response = await fetch(`${this.llamaUrl}/v1/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'gemma4',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: prompt },
-              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } },
-            ],
-          },
-        ],
-        temperature: 0.1,
-        max_tokens: 64,
-      }),
-    });
+    const lensResults = await this.serperLens.identifyByImage(imageUrl, 'ru', 'ru');
+    const rawProductName = this.serperLens.extractProductName(lensResults);
 
-    if (!response.ok) {
-      throw new Error(`llama-server error: ${response.status}`);
+    if (!rawProductName) {
+      return {
+        identified: false,
+        message: 'Не удалось распознать товар на фото',
+        offers: [],
+        visualMatches: lensResults.map(r => ({ title: r.title, source: r.source, link: r.link, imageUrl: r.imageUrl })),
+      };
     }
 
-    const data = await response.json() as any;
-    const content = (data.choices?.[0]?.message?.content || '').trim();
+    this.logger.log(`Serper Lens identified raw: "${rawProductName}"`);
 
-    const keywords = content.split(/[\s,]+/).filter((w: string) => w.length > 2);
-    const brand = keywords[0] || '';
-    const model = keywords.slice(1).join(' ') || '';
-    return { brand, model, description: content.slice(0, 200) };
+    const productName = await this.cleanProductName(rawProductName);
+
+    let offers: any[] = [];
+    try {
+      offers = await this.searchService.searchProducts({ text: productName, region: region || 'RU' });
+    } catch {
+      this.logger.warn('Serper Shopping failed');
+    }
+
+    return {
+      identified: true,
+      productName,
+      rawProductName,
+      offers: offers.filter(o => o.price > 0 || (o.price === 0 && o.url && !o.url.includes('google.com'))),
+      visualMatches: lensResults.map(r => ({ title: r.title, source: r.source, link: r.link, imageUrl: r.imageUrl })),
+    };
   }
 
-  getShopLinks(query: string) {
-    return SHOP_LINKS.map((shop) => ({
-      name: shop.name,
-      url: shop.url(query),
-    }));
+  async searchByKeywords(keywords: string[], region: string = 'RU') {
+    const query = keywords.join(' ');
+    const cleanQuery = await this.cleanProductName(query);
+    const offers = await this.searchService.searchProducts({ text: cleanQuery, region });
+    return { query: cleanQuery, region, offers, keywords };
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CityAdsClient, CityAdsFeedProduct } from './cityads.client';
 
 interface CpaProduct {
   shop: string;
@@ -15,14 +16,16 @@ interface CpaProduct {
 export class CpaService {
   private readonly logger = new Logger(CpaService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cityAdsClient: CityAdsClient,
+  ) {}
 
   async importProducts(products: CpaProduct[]) {
     let created = 0;
     let updated = 0;
 
     for (const item of products) {
-      const key = `${item.brand} ${item.model}`;
       let product = await this.prisma.product.findFirst({
         where: { brand: item.brand, model: item.model },
       });
@@ -55,6 +58,43 @@ export class CpaService {
 
     this.logger.log(`CPA import: ${created} products, ${updated} offers`);
     return { created, updated };
+  }
+
+  async syncCityAdsFeed(feedId: string, options: { limit?: number; updatedSince?: string } = {}) {
+    this.logger.log(`Syncing CityAds feed ${feedId}`);
+
+    let offset = 0;
+    const limit = options.limit || 1000;
+    let totalImported = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      try {
+        const response = await this.cityAdsClient.getFeed(feedId, {
+          limit,
+          offset,
+          updated_since: options.updatedSince,
+        });
+
+        const products: CpaProduct[] = response.products.map((p: CityAdsFeedProduct) =>
+          this.cityAdsClient.transformProduct(p),
+        );
+
+        const result = await this.importProducts(products);
+        totalImported += result.created + result.updated;
+
+        hasMore = response.products.length === limit;
+        offset += limit;
+
+        this.logger.log(`Batch ${offset / limit}: imported ${result.created + result.updated} items`);
+      } catch (error: any) {
+        this.logger.error(`Failed to sync CityAds feed: ${error.message}`);
+        throw error;
+      }
+    }
+
+    this.logger.log(`CityAds sync complete: ${totalImported} total items`);
+    return { imported: totalImported };
   }
 
   async parseAdmitadXml(xml: string): Promise<CpaProduct[]> {
@@ -96,4 +136,8 @@ export class CpaService {
 
     return results;
   }
-} 
+
+  async getCityAdsFeeds() {
+    return this.cityAdsClient.getAllFeeds();
+  }
+}

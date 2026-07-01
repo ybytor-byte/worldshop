@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "WorldShop — Умное сравнение цен с ИИ",
   description: "Сравнивайте цены на Ozon, Wildberries, МВидео, DNS и Яндекс.Маркет с ИИ-аналитикой",
+  other: {
+    "verify-admitad": "0ce8014a49",
+  },
 };
 
 export default function RootLayout({

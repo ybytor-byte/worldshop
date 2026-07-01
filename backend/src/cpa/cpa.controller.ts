@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Logger } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CpaService } from './cpa.service';
 
@@ -21,4 +21,19 @@ export class CpaController {
   async importJson(@Body() products: any[]) {
     return this.cpaService.importProducts(products);
   }
-} 
+
+  @Post('cityads/sync/:feedId')
+  @ApiOperation({ summary: 'Sync products from CityAds feed by feed ID' })
+  async syncCityAds(
+    @Param('feedId') feedId: string,
+    @Body() options: { limit?: number; updatedSince?: string },
+  ) {
+    return this.cpaService.syncCityAdsFeed(feedId, options);
+  }
+
+  @Get('cityads/feeds')
+  @ApiOperation({ summary: 'List all CityAds feeds available' })
+  async getFeeds() {
+    return this.cpaService.getCityAdsFeeds();
+  }
+}

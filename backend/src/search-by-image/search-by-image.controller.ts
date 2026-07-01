@@ -1,5 +1,5 @@
 import {
-  Controller, Post, UploadedFile, UseInterceptors, BadRequestException,
+  Controller, Post, UploadedFile, UseInterceptors, BadRequestException, Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
@@ -12,48 +12,38 @@ export class SearchByImageController {
 
   @Post()
   @UseInterceptors(FileInterceptor('image'))
-  @ApiOperation({ summary: 'Search products by image' })
+  @ApiOperation({ summary: 'Search products by image upload → Cloudinary → Serper Lens → Shopping' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
         image: { type: 'string', format: 'binary' },
+        region: { type: 'string', default: 'RU' },
       },
     },
   })
-  async searchByImage(@UploadedFile() file: Express.Multer.File) {
+  async searchByImage(@UploadedFile() file: Express.Multer.File, @Body('region') region?: string) {
     if (!file) {
       throw new BadRequestException('Image file is required');
     }
 
     try {
-      const base64 = file.buffer.toString('base64');
-      const product = await this.service.identifyProduct(base64);
-
-      let query = `${product.brand} ${product.model}`.trim();
-      if (!query || query.length < 3) {
-        query = `товар по фото ${Date.now()}`;
-      }
-
-      const shops = this.service.getShopLinks(query);
-
-      return {
-        identified: !!product.brand || !!product.model,
-        brand: product.brand,
-        model: product.model,
-        description: product.description,
-        query,
-        shops,
-      };
+      return await this.service.searchByImageUpload(file.buffer, file.mimetype, region || 'RU');
     } catch (err: any) {
       const query = `товар ${Date.now()}`;
-      const shops = this.service.getShopLinks(query);
+      const fallback = await this.service.searchByKeywords([query], region || 'RU');
       return {
         identified: false,
-        message: `Ошибка ИИ: ${err?.message || 'неизвестная'}`,
-        shops,
+        message: `Ошибка: ${err?.message || 'неизвестная'}`,
+        offers: fallback.offers,
       };
     }
+  }
+
+  @Post('keywords')
+  @ApiOperation({ summary: 'Search by extracted keywords (no image upload)' })
+  async searchByKeywords(@Body() body: { keywords: string[]; region?: string }) {
+    return this.service.searchByKeywords(body.keywords || [], body.region || 'RU');
   }
 }

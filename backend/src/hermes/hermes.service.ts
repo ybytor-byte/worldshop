@@ -32,6 +32,25 @@ export class HermesService {
     this.hermesUrl = configService.get<string>('HERMES_URL') || 'http://localhost:56677';
   }
 
+  async cleanProductName(rawTitle: string): Promise<string> {
+    this.logger.log(`Cleaning product name: "${rawTitle.slice(0, 100)}"`);
+
+    const systemPrompt = 'Ты — ассистент по товарам. Из текста ниже выдели ТОЛЬКО бренд и модель товара. Ответь одной короткой фразой (максимум 10 слов). Без лишнего текста, без пояснений. Пример: "iPhone 15 Pro 128GB" или "Samsung Galaxy S24 Ultra".';
+
+    try {
+      const result = await this.callLlama(systemPrompt, rawTitle);
+      const cleaned = result.replace(/[^\w\s\-а-яёА-ЯЁ0-9\.]/g, '').trim();
+      if (cleaned.length > 3 && cleaned.length < 80) {
+        this.logger.log(`Cleaned: "${rawTitle.slice(0, 60)}" → "${cleaned}"`);
+        return cleaned;
+      }
+    } catch (e) {
+      this.logger.warn(`cleanProductName failed: ${(e as Error).message}`);
+    }
+
+    return rawTitle.replace(/купить.*$/i, '').replace(/с доставкой.*$/i, '').trim().slice(0, 60);
+  }
+
   async extractProduct(payload: ProductPayload): Promise<TechPassport> {
     this.logger.log(`Extracting product: ${payload.title}`);
 
@@ -122,7 +141,8 @@ Return ONLY valid JSON array:
       }
 
       const data = await response.json() as any;
-      return data.choices?.[0]?.message?.content || '';
+      const msg = data.choices?.[0]?.message || {};
+      return msg.content || msg.reasoning_content || '';
     } catch (error) {
       this.logger.warn(`llama-server vision failed: ${(error as Error).message}`);
       return '';
@@ -165,7 +185,8 @@ Return ONLY valid JSON array:
     }
 
     const data = await response.json() as any;
-    return data.choices?.[0]?.message?.content || '';
+    const msg = data.choices?.[0]?.message || {};
+    return msg.content || msg.reasoning_content || '';
   }
 
   private async extractViaHermes(payload: ProductPayload): Promise<TechPassport> {
@@ -214,7 +235,6 @@ Use the web search and browser tools to find matching products.`;
   }
 
   private async waitForHermesResult(sessionId: string): Promise<TechPassport> {
-    // Poll for session result with timeout
     const maxAttempts = 30;
     for (let i = 0; i < maxAttempts; i++) {
       try {
@@ -227,7 +247,6 @@ Use the web search and browser tools to find matching products.`;
           }
         }
       } catch {
-        // Session not ready yet
       }
       await new Promise((r) => setTimeout(r, 2000));
     }

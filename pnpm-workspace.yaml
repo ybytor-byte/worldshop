@@ -3,6 +3,7 @@ packages:
   - 'backend'
   - 'web'
   - 'shared'
+  - 'packages/mcp-server'
 allowBuilds:
   '@apollo/protobufjs': true
   '@nestjs/core': true
