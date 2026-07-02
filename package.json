@@ -2,7 +2,8 @@
   "name": "worldshop",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
+    "build": "cd backend && npm run build",
+    "start": "node backend/dist/src/main.js",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
@@ -10,5 +11,6 @@
   "devDependencies": {
     "turbo": "^2.0.0",
     "prettier": "^3.0.0"
-  }
+  },
+  "packageManager": "pnpm@11.9.0"
 }
