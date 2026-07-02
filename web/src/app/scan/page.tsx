@@ -69,7 +69,7 @@ export default function ScanPage() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/search-by-image`,
+        `https://worldshopbackend-production.up.railway.app/search-by-image`,
         { method: 'POST', body: form }
       );
       const data = await res.json();
@@ -90,7 +90,7 @@ export default function ScanPage() {
     form.append('image', file);
     setPhase('scanning');
     setStatusText('Ищем товар через Google Lens...');
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/search-by-image`, { method: 'POST', body: form })
+    fetch(`https://worldshopbackend-production.up.railway.app/search-by-image`, { method: 'POST', body: form })
       .then(r => r.json())
       .then(data => { setPhase('done'); setResult(data); })
       .catch(() => { setPhase('idle'); setPreview(null); setResult({ error: 'Ошибка соединения с сервером', message: 'Проверьте, запущен ли бэкенд на :3001' }); });

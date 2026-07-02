@@ -37,7 +37,7 @@ function AuthComponent() {
 
     const endpoint = mode === 'register' ? 'register' : 'login';
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/${endpoint}`, {
+      const response = await fetch(`https://worldshopbackend-production.up.railway.app/auth/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ function AuthComponent() {
 
           <div className="grid grid-cols-2 gap-4">
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/google`}
+              href={`https://worldshopbackend-production.up.railway.app/auth/google`}
               className="flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] bg-theme-card border-theme text-theme-secondary hover:bg-theme-card-hover"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -147,7 +147,7 @@ function AuthComponent() {
               Google
             </a>
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/yandex`}
+              href={`https://worldshopbackend-production.up.railway.app/auth/yandex`}
               className="flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] bg-theme-card border-theme text-theme-secondary hover:bg-theme-card-hover"
             >
               <span className="flex h-5 w-5 items-center justify-center rounded bg-red-600 font-extrabold text-[13px] text-white select-none">Я</span>

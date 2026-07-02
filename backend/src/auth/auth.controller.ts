@@ -48,7 +48,7 @@ export class AuthController {
       (req.user as any).email,
     );
     res.redirect(
-      `http://localhost:3000/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}&provider=google`,
+      `https://world-shop.online/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}&provider=google`,
     );
   }
 
@@ -66,7 +66,7 @@ export class AuthController {
       (req.user as any).email,
     );
     res.redirect(
-      `http://localhost:3000/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}&provider=yandex`,
+      `https://world-shop.online/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}&provider=yandex`,
     );
   }
 }

@@ -41,7 +41,7 @@ function ImageUpload({ onResult }: { onResult: (data: any) => void }) {
     form.append('image', file);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/search-by-image`,
+        `https://worldshopbackend-production.up.railway.app/search-by-image`,
         { method: 'POST', body: form }
       );
       const data = await res.json();

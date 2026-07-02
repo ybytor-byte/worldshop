@@ -9,7 +9,7 @@ export class YandexStrategy extends PassportStrategy(GoogleStrategy, 'yandex') {
     super({
       clientID: configService.get<string>('YANDEX_CLIENT_ID') || '',
       clientSecret: configService.get<string>('YANDEX_CLIENT_SECRET') || '',
-      callbackURL: 'http://localhost:3001/auth/yandex/callback',
+      callbackURL: 'https://worldshopbackend-production.up.railway.app/auth/yandex/callback',
       scope: ['login:email', 'login:info'],
       authorizationURL: 'https://oauth.yandex.ru/authorize',
       tokenURL: 'https://oauth.yandex.ru/token',

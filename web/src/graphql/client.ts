@@ -1,6 +1,6 @@
 import { ApolloClient, InMemoryCache, ApolloLink, createHttpLink } from '@apollo/client';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE = 'https://worldshopbackend-production.up.railway.app';
 
 const httpLink = createHttpLink({
   uri: `${API_BASE}/graphql`,
