@@ -1,10 +1,9 @@
 {
   "name": "worldshop",
   "private": true,
-  "workspaces": ["backend"],
   "scripts": {
-    "build": "npm run build --workspace=backend",
+    "build": "cd backend && npm run build",
     "start": "node backend/dist/src/main.js",
-    "dev": "npm run dev --workspace=backend"
+    "dev": "cd backend && npm run dev"
   }
 }
