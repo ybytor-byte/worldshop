@@ -40,17 +40,15 @@ function ImageUpload({ onResult }: { onResult: (data: any) => void }) {
     const form = new FormData();
     form.append('image', file);
     try {
-      const res = await fetch(
-        `https://worldshopbackend-production.up.railway.app/search-by-image`,
-        { method: 'POST', body: form }
-      );
+      const url = 'https://worldshopbackend-production.up.railway.app/search-by-image';
+      const res = await fetch(url, { method: 'POST', body: form });
       const data = await res.json();
       setPhase('done');
       onResult(data);
-    } catch {
+    } catch (e) {
       setPhase('idle');
       setPreview(null);
-      onResult({ error: 'Ошибка соединения с сервером', message: 'Проверьте, запущен ли бэкенд на :3001' });
+      onResult({ error: 'Ошибка соединения с сервером', message: `Не удалось подключиться к ${url}` });
     }
   }, [onResult]);
 
