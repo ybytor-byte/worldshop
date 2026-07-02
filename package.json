@@ -1,15 +1,10 @@
 {
   "name": "worldshop",
   "private": true,
+  "workspaces": ["backend"],
   "scripts": {
-    "build": "cd backend && npm run build",
+    "build": "npm run build --workspace=backend",
     "start": "node backend/dist/src/main.js",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
-  },
-  "devDependencies": {
-    "turbo": "^2.0.0",
-    "prettier": "^3.0.0"
+    "dev": "npm run dev --workspace=backend"
   }
 }
