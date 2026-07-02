@@ -27,7 +27,7 @@ import { McpModule } from './mcp/mcp.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        typePaths: [join(process.cwd(), 'src', 'common', 'graphql', '*.gql')],
+        typePaths: [join(process.cwd(), 'backend', 'src', 'common', 'graphql', '*.gql')],
         playground: configService.get<string>('NODE_ENV') !== 'production',
         introspection: true,
       }),
