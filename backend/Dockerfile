@@ -1,12 +1,12 @@
 FROM node:22-alpine AS builder
 RUN apk add --no-cache openssl
 WORKDIR /app
-COPY package.json ./
-COPY prisma ./prisma
+COPY backend/package.json ./
+COPY backend/prisma ./prisma
 RUN npm install --ignore-scripts
 RUN npx prisma generate
-COPY tsconfig*.json ./
-COPY src ./src
+COPY backend/tsconfig*.json ./
+COPY backend/src ./src
 RUN npm run build
 
 FROM node:22-alpine
