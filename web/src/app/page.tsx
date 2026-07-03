@@ -269,8 +269,11 @@ export default function HomePage() {
                           {imageResult.offers.map((offer: any, i: number) => {
                             const shop = offer.shop;
                             const url = offer.url;
-                            const price = offer.price ? `${Number(offer.price).toLocaleString('ru-RU')} ₽` : '';
-                            const shipping = offer.shipping ? `+ ${Number(offer.shipping).toLocaleString('ru-RU')} ₽ дост.` : '';
+                            const price = offer.priceInRub ? `${Number(offer.priceInRub).toLocaleString('ru-RU')} ₽` : '';
+                            const shipping = offer.shipping > 0 ? `+ ${Number(offer.shipping).toLocaleString('ru-RU')} ₽ дост.` : '';
+                            const customs = offer.customsDuty > 0 ? `+ ${Number(offer.customsDuty).toLocaleString('ru-RU')} ₽ пошл.` : '';
+                            const delivery = offer.deliveryDays ? ` • ${offer.deliveryDays}` : '';
+                            const total = offer.finalPrice ? `${Number(offer.finalPrice).toLocaleString('ru-RU')} ₽` : '';
                             return (
                               <a key={i} href={url} target="_blank" rel="noopener"
                                 className="flex items-center justify-between text-xs px-3 py-2 rounded-lg transition-colors bg-theme-card-hover"
@@ -278,8 +281,13 @@ export default function HomePage() {
                                 <div className="min-w-0 flex-1">
                                   <span className="text-theme-primary font-medium truncate block">{shop}</span>
                                   <div className="flex items-center gap-1 flex-wrap mt-0.5">
-                                    {price && <span className="text-xs font-bold">{price}</span>}
+                                    {total && <span className="text-xs font-bold" style={{ color: 'var(--accent-primary)' }}>{total}</span>}
+                                    {price && <span className="text-[10px] text-theme-muted">{price}{delivery}</span>}
+                                  </div>
+                                  <div className="flex items-center gap-1 flex-wrap mt-0.5">
                                     {shipping && <span className="text-[10px] text-theme-muted">{shipping}</span>}
+                                    {customs && <span className="text-[10px] text-theme-muted">{customs}</span>}
+                                    {offer.region && <span className="text-[10px]" style={{ color: '#6366f1' }}>{offer.region}</span>}
                                   </div>
                                 </div>
                                 <svg className="h-3.5 w-3.5 text-theme-muted shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
