@@ -69,7 +69,7 @@ describe('SerperProvider', () => {
       expect(results[0].price).toBe(9990);
       expect(results[0].currency).toBe('RUB');
       expect(results[0].region).toBe('RU');
-      expect(results[0].shipping).toBe(500);
+      expect(results[0].url).toBe('https://teststore.ru/p/123');
     });
 
     it('calls serper.dev API with correct region param', async () => {
@@ -97,6 +97,48 @@ describe('SerperProvider', () => {
       global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
       const results = await provider.search({ text: 'test', region: 'RU' });
       expect(results).toEqual([]);
+    });
+
+    it('ignores organic results — only uses shopping', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [],
+          organic: [
+            { title: 'iPhone 16', source: 'SomeBlog', price: 'от 455 ₽/мес', link: 'https://blog.ru/post' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'iPhone', region: 'RU' });
+      expect(results).toEqual([]);
+    });
+
+    it('skips items with zero price', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'Free Item', source: 'Shop', price: { amount: 0, currency: 'RUB' }, link: 'https://shop.ru/free' },
+            { title: 'Paid Item', source: 'Shop2', price: { amount: 500, currency: 'RUB' }, link: 'https://shop2.ru/paid' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'test', region: 'RU' });
+      expect(results).toHaveLength(1);
+      expect(results[0].price).toBe(500);
+    });
+
+    it('uses the real product URL from API, not generated Ozon search', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'Nike Shoes', source: 'Nike', price: { amount: 8990, currency: 'RUB' }, link: 'https://www.nike.com/air-max' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'Nike Air Max', region: 'RU' });
+      expect(results[0].url).toBe('https://www.nike.com/air-max');
     });
   });
 });
