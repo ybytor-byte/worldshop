@@ -60,41 +60,6 @@ export class SerpApiProvider implements SearchProvider {
     }
   }
 
-  private getStoreUrl(seller: string, productTitle: string, region: string): string {
-    const s = seller.toLowerCase();
-    const q = encodeURIComponent(productTitle);
-
-    if (s.includes('ozon')) return `https://www.ozon.ru/search?text=${q}`;
-    if (s.includes('wildberries')) return `https://www.wildberries.ru/catalog/0/search.aspx?search=${q}`;
-    if (s.includes('yandex')) return `https://market.yandex.ru/search?text=${q}`;
-    if (s.includes('best buy') || s === 'bestbuy') return `https://www.bestbuy.com/site/searchpage.jsp?st=${q}`;
-    if (s.includes('walmart')) return `https://www.walmart.com/search?q=${q}`;
-    if (s.includes('amazon')) return region === 'EU' || region === 'DE'
-      ? `https://www.amazon.de/s?k=${q}` : `https://www.amazon.com/s?k=${q}`;
-    if (s.includes('aliexpress')) return `https://aliexpress.ru/wholesale?SearchText=${q}`;
-    if (s.includes('ebay')) return `https://www.ebay.com/sch/i.html?_nkw=${q}`;
-    if (s.includes('apple store') || s === 'apple') return `https://www.apple.com/shop/search?q=${q}`;
-    if (s.includes('mediamarkt') || s.includes('media markt')) return `https://www.mediamarkt.de/search?query=${q}`;
-    if (s.includes('zalando')) return `https://www.zalando.de/search?q=${q}`;
-    if (s.includes('target')) return `https://www.target.com/s?searchTerm=${q}`;
-    if (s.includes('costco')) return `https://www.costco.com/search?q=${q}`;
-    if (s.includes('newegg')) return `https://www.newegg.com/p/pl?d=${q}`;
-    if (s.includes('home depot')) return `https://www.homedepot.com/s/${q.replace(/%20/g, '+')}`;
-    if (s.includes('lowes')) return `https://www.lowes.com/search?searchTerm=${q}`;
-    if (s.includes('b&h') || s.includes('bhphoto')) return `https://www.bhphotovideo.com/c/search?q=${q}`;
-    if (s.includes('kns') || s.includes('kns distribution')) return `https://www.knsdistribution.com/search?q=${q}`;
-    if (s.includes('swappie')) return `https://www.swappie.com/search?q=${q}`;
-    if (s.includes('back market')) return `https://www.backmarket.com/search?q=${q}`;
-    if (s.includes('asgoodasnew') || s.includes('as good as new')) return `https://www.asgoodasnew.com/search?q=${q}`;
-    if (s.includes('store77')) return `https://store77.net/search?q=${q}`;
-    if (s.includes('apple-com')) return `https://apple-com.ru/search?q=${q}`;
-    if (s.includes('5element')) return `https://5element.by/search?q=${q}`;
-    if (s.includes('yourfone')) return `https://www.yourfone.de/search?q=${q}`;
-    if (s.includes('mts') || s.includes('мегафон') || s.includes('билайн')) return `https://www.google.com/search?q=${q}&tbm=shop&gl=${region === 'RU' ? 'ru' : 'us'}`;
-
-    return `https://www.google.com/search?q=${q}&tbm=shop&gl=${region === 'RU' ? 'ru' : region === 'EU' ? 'de' : region === 'ASIA' ? 'jp' : 'us'}`;
-  }
-
   private parseShoppingResults(data: any, region: string, queryText?: string): SearchOffer[] {
     const results: SearchOffer[] = [];
     const seen = new Set<string>();
@@ -111,9 +76,7 @@ export class SerpApiProvider implements SearchProvider {
       if (price <= 0) continue;
 
       const shop = item.seller || item.source || item.store || 'Store';
-      const productTitle = item.title || queryText || '';
-
-      const link = item.link || this.getStoreUrl(shop, productTitle, region);
+      const link = item.link || item.product_link || '';
 
       const key = `${shop}|${price}`;
       if (seen.has(key)) continue;

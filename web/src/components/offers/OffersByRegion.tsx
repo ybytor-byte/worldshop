@@ -16,7 +16,7 @@ function OfferCard({ offer, color }: { offer: any; color: string }) {
       href={offer.url}
       target="_blank"
       rel="noopener"
-      className="flex flex-col gap-1.5 p-3 rounded-xl border transition-all active:scale-[0.97] hover:brightness-110 min-w-[180px] flex-shrink-0"
+      className="flex flex-col gap-1.5 p-3 rounded-xl border transition-all active:scale-[0.97] hover:brightness-110"
       style={{
         borderColor: 'var(--border-color)',
         background: 'var(--bg-card)',
@@ -110,7 +110,7 @@ export default function OffersByRegion({ offers }: { offers: any[] }) {
       </div>
 
       {selectedRegion && (
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
+        <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}
           {grouped[selectedRegion]
             .sort((a: any, b: any) => (a.finalPrice || 0) - (b.finalPrice || 0))
             .map((offer: any, i: number) => (
