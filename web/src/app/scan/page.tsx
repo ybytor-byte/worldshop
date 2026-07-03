@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Header } from '../../components/layout/Header';
+import OffersByRegion from '../../components/offers/OffersByRegion';
 
 export default function ScanPage() {
   const [phase, setPhase] = useState<'idle' | 'camera' | 'preview' | 'scanning' | 'done'>('idle');
@@ -190,38 +191,10 @@ export default function ScanPage() {
                     <p className="text-xs text-theme-secondary">{result.message || 'Не удалось распознать товар'}</p>
                   )}
                   {(result.offers?.length > 0) && (
-                    <div className={`${result.identified ? 'mt-3' : ''} space-y-1.5`}>
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-theme-muted">Предложения</p>
-                        {result.offers.map((offer: any, i: number) => {
-                          const shop = offer.shop;
-                          const url = offer.url;
-                          const price = offer.priceInRub ? `${Number(offer.priceInRub).toLocaleString('ru-RU')} ₽` : '';
-                          const shipping = offer.shipping > 0 ? `+ ${Number(offer.shipping).toLocaleString('ru-RU')} ₽ дост.` : '';
-                          const customs = offer.customsDuty > 0 ? `+ ${Number(offer.customsDuty).toLocaleString('ru-RU')} ₽ пошл.` : '';
-                          const delivery = offer.deliveryDays ? ` • ${offer.deliveryDays}` : '';
-                          const total = offer.finalPrice ? `${Number(offer.finalPrice).toLocaleString('ru-RU')} ₽` : '';
-                          return (
-                            <a key={i} href={url} target="_blank" rel="noopener"
-                              className="flex items-center justify-between text-xs px-3 py-2 rounded-lg transition-colors bg-theme-card-hover border border-theme">
-                              <div className="min-w-0 flex-1">
-                                <span className="text-theme-primary font-medium truncate block">{shop}</span>
-                                <div className="flex items-center gap-1 flex-wrap mt-0.5">
-                                  {total && <span className="text-xs font-bold" style={{ color: 'var(--accent-primary)' }}>{total}</span>}
-                                  {price && <span className="text-[10px] text-theme-muted">{price}{delivery}</span>}
-                                </div>
-                                <div className="flex items-center gap-1 flex-wrap mt-0.5">
-                                  {shipping && <span className="text-[10px] text-theme-muted">{shipping}</span>}
-                                  {customs && <span className="text-[10px] text-theme-muted">{customs}</span>}
-                                  {offer.region && <span className="text-[10px]" style={{ color: '#6366f1' }}>{offer.region}</span>}
-                                </div>
-                              </div>
-                              <svg className="h-3.5 w-3.5 text-theme-muted shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                              </svg>
-                            </a>
-                          );
-                        })}
-                      </div>
+                    <div className={`${result.identified ? 'mt-3' : ''}`}>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-theme-muted mb-2">Предложения</p>
+                      <OffersByRegion offers={result.offers} />
+                    </div>
                   )}
                 </div>
               )}
