@@ -5,6 +5,10 @@ interface Offer {
   price: number;
   currency: string;
   url: string;
+  variant?: string;
+  region?: string;
+  shippingUSD?: number;
+  deliveryDays?: string;
   affiliateUrl?: string;
   scrapedAt?: string;
 }

@@ -18,11 +18,6 @@ export class SearchService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      const { YandexMarketProvider } = await import('./providers/yandex.provider');
-      this.providers.push(new YandexMarketProvider(this.configService));
-    } catch { this.logger.warn('YandexMarketProvider not available'); }
-
-    try {
       const { SerperProvider } = await import('./providers/serper.provider');
       this.providers.push(new SerperProvider(this.configService));
     } catch { this.logger.warn('SerperProvider not available'); }

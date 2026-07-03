@@ -267,27 +267,19 @@ export default function HomePage() {
                         <div className="mt-3 space-y-1.5">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-theme-muted">Предложения</p>
                           {imageResult.offers.map((offer: any, i: number) => {
-                            const name = offer.shop || offer.name;
+                            const shop = offer.shop;
                             const url = offer.url;
                             const price = offer.price ? `${Number(offer.price).toLocaleString('ru-RU')} ₽` : '';
                             const shipping = offer.shipping ? `+ ${Number(offer.shipping).toLocaleString('ru-RU')} ₽ дост.` : '';
-                            const duty = offer.duty && offer.duty > 0 ? `+ ${Number(offer.duty).toLocaleString('ru-RU')} ₽ пошл.` : '';
-                            const total = offer.totalPrice ? `= ${Number(offer.totalPrice).toLocaleString('ru-RU')} ₽` : '';
-                            const rank = offer.rank ? `#${offer.rank}` : '';
                             return (
                               <a key={i} href={url} target="_blank" rel="noopener"
                                 className="flex items-center justify-between text-xs px-3 py-2 rounded-lg transition-colors bg-theme-card-hover"
                               >
                                 <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-1.5">
-                                    {rank && <span className="text-[10px] font-bold text-theme-muted">{rank}</span>}
-                                    <span className="text-theme-primary font-medium truncate">{name}</span>
-                                  </div>
+                                  <span className="text-theme-primary font-medium truncate block">{shop}</span>
                                   <div className="flex items-center gap-1 flex-wrap mt-0.5">
                                     {price && <span className="text-xs font-bold">{price}</span>}
                                     {shipping && <span className="text-[10px] text-theme-muted">{shipping}</span>}
-                                    {duty && <span className="text-[10px] text-theme-muted">{duty}</span>}
-                                    {total && <span className="text-xs font-bold" style={{ color: 'var(--accent-primary)' }}>{total}</span>}
                                   </div>
                                 </div>
                                 <svg className="h-3.5 w-3.5 text-theme-muted shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
