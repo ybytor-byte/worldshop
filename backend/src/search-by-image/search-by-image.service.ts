@@ -126,7 +126,7 @@ export class SearchByImageService {
     );
 
     const allOffers = regionResults.flat();
-    const filteredOffers = allOffers.filter(o => o.price > 0 || (o.price === 0 && o.url && !o.url.includes('google.com')));
+    const filteredOffers = allOffers.filter(o => o.url && o.price > 0);
 
     // Enrich with real ApiShip shipping + per-country customs
     const enriched = await this.enrichOffers(filteredOffers, 19, 'Москва', 'RU');
@@ -156,7 +156,7 @@ export class SearchByImageService {
       ),
     );
 
-    const allOffers = regionResults.flat();
+    const allOffers = regionResults.flat().filter(o => o.url && o.price > 0);
     const enriched = await this.enrichOffers(allOffers, 19, 'Москва', 'RU');
     enriched.sort((a, b) => a.finalPrice - b.finalPrice);
 
