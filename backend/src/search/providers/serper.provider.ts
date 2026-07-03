@@ -79,11 +79,9 @@ export class SerperProvider implements SearchProvider {
   }
 
   private pickUrl(item: any): string {
-    const link = item.link || item.product_link || '';
+    const link = item.link || item.product_link || item.url || item.merchant_link || item.seller_link || '';
     if (!link) return '';
-    const extracted = this.extractRealUrl(link);
-    if (extracted) return extracted;
-    return link;
+    return this.extractRealUrl(link);
   }
 
   private defaultCurrency(region: string): string {
@@ -91,16 +89,22 @@ export class SerperProvider implements SearchProvider {
     return map[region] || 'USD';
   }
 
-  private extractRealUrl(rawUrl: string): string | null {
-    if (!rawUrl) return null;
-    if (rawUrl.includes('google.com/url?q=')) {
-      try {
-        const u = new URL(rawUrl);
-        const q = u.searchParams.get('q');
+  private extractRealUrl(rawUrl: string): string {
+    if (!rawUrl) return '';
+    try {
+      const u = new URL(rawUrl);
+      const isGoogleRedirect = u.pathname === '/url' && (u.hostname === 'www.google.com' || u.hostname === 'google.com');
+      const isGoogleAd = u.pathname === '/aclk' && (u.hostname.includes('google.com') || u.hostname.includes('doubleclick.net'));
+      if (isGoogleRedirect) {
+        const q = u.searchParams.get('q') || u.searchParams.get('url');
         if (q && (q.startsWith('http://') || q.startsWith('https://'))) return q;
-      } catch { /* ignore */ }
-    }
-    if (rawUrl.includes('google.com')) return null;
+      }
+      if (isGoogleAd) {
+        const adUrl = u.searchParams.get('adurl');
+        if (adUrl && (adUrl.startsWith('http://') || adUrl.startsWith('https://'))) return adUrl;
+      }
+    } catch { /* ignore */ }
+    if (rawUrl.includes('google.com') || rawUrl.includes('google.ru') || rawUrl.includes('googlesyndication.com') || rawUrl.includes('doubleclick.net')) return '';
     return rawUrl;
   }
 }

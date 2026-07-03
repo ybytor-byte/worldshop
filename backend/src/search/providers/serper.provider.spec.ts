@@ -194,5 +194,96 @@ describe('SerperProvider', () => {
       const resultsAsia = await provider.search({ text: 'iPhone 15', region: 'ASIA' });
       expect(resultsAsia[0].currency).toBe('JPY');
     });
+
+    it('extracts real URL from Google /url?q= redirect', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'Phone', source: 'Store', price: 100, link: 'https://www.google.com/url?q=https://realstore.com/product&sa=U&ved=0ahUKEwi1' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'phone', region: 'US' });
+      expect(results[0].url).toBe('https://realstore.com/product');
+    });
+
+    it('extracts real URL from Google /url?url= redirect', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'Laptop', source: 'Shop', price: 500, link: 'https://google.com/url?url=https://example.com/laptop&rct=j' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'laptop', region: 'US' });
+      expect(results[0].url).toBe('https://example.com/laptop');
+    });
+
+    it('extracts adurl from Google /aclk ads', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'Ad Product', source: 'AdStore', price: 200, link: 'https://www.google.com/aclk?sa=L&adurl=https://adstore.com/prod&ctype=2' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'ad', region: 'US' });
+      expect(results[0].url).toBe('https://adstore.com/prod');
+    });
+
+    it('discards Google Shopping product page URLs', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'Product', source: 'Google Shop', price: 300, link: 'https://www.google.com/shopping/product/12345' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'product', region: 'US' });
+      expect(results[0].url).toBe('');
+    });
+
+    it('falls back to item.url when link field is missing', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'Test', source: 'Store', price: 100, url: 'https://store.com/item', merchant_link: 'https://merchant.com/item' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'test', region: 'RU' });
+      expect(results[0].url).toBe('https://store.com/item');
+    });
+
+    it('returns empty URL when no link field is present', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'Item', source: 'Shop', price: { amount: 100, currency: 'USD' } },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'item', region: 'US' });
+      expect(results[0].url).toBe('');
+    });
+
+    it('handles googlesyndication.com URLs', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'Ad', source: 'AdNetwork', price: 50, link: 'https://googleads.g.doubleclick.net/aclk?adurl=https://real.com/prod' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'ad', region: 'US' });
+      expect(results[0].url).toBe('https://real.com/prod');
+    });
   });
 });
