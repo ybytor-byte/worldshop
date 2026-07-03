@@ -126,7 +126,12 @@ export class SearchByImageService {
     );
 
     const allOffers = regionResults.flat();
-    const filteredOffers = allOffers.filter(o => o.url && !o.url.includes('google.com') && !o.url.includes('googlesyndication.com') && !o.url.includes('doubleclick.net'));
+    const filteredOffers = allOffers.filter(o => {
+      if (!o.url) return false;
+      const u = o.url.toLowerCase();
+      if (u.includes('doubleclick.net') || u.includes('googlesyndication.com') || u.includes('/aclk') || u.includes('google.com/url?')) return false;
+      return true;
+    });
 
     // Enrich with real ApiShip shipping + per-country customs
     const enriched = await this.enrichOffers(filteredOffers, 19, 'Москва', 'RU');
@@ -156,7 +161,12 @@ export class SearchByImageService {
       ),
     );
 
-    const allOffers = regionResults.flat().filter(o => o.url && !o.url.includes('google.com'));
+    const allOffers = regionResults.flat().filter(o => {
+      if (!o.url) return false;
+      const u = o.url.toLowerCase();
+      if (u.includes('doubleclick.net') || u.includes('googlesyndication.com') || u.includes('/aclk') || u.includes('google.com/url?')) return false;
+      return true;
+    });
     const enriched = await this.enrichOffers(allOffers, 19, 'Москва', 'RU');
     enriched.sort((a, b) => a.finalPrice - b.finalPrice);
 

@@ -2,14 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SearchProvider, SearchOffer, SearchQuery } from '../interfaces/search-provider.interface';
 
-interface SerpApiParams {
-  engine: string;
-  q: string;
-  api_key: string;
-  gl?: string;
-  hl?: string;
-  [key: string]: any;
-}
+const SEARCHAPI_KEY = 'bwetm5ZbkwqYuBw7eJHTozrU';
+const BASE_URL = 'https://www.searchapi.io/api/v1/search';
 
 @Injectable()
 export class SerpApiProvider implements SearchProvider {
@@ -17,17 +11,16 @@ export class SerpApiProvider implements SearchProvider {
   readonly supportedRegions = ['RU', 'US', 'EU', 'ASIA'];
   private readonly apiKey: string;
   private readonly logger = new Logger(SerpApiProvider.name);
-  private readonly baseUrl = 'https://serpapi.com/search';
 
-  private readonly regionConfig: Record<string, { engine: string; gl: string; domain: string }> = {
-    RU: { engine: 'google_shopping', gl: 'ru', domain: 'google.ru' },
-    US: { engine: 'google_shopping', gl: 'us', domain: 'google.com' },
-    EU: { engine: 'google_shopping', gl: 'de', domain: 'google.de' },
-    ASIA: { engine: 'aliexpress', gl: '', domain: '' },
+  private readonly regionConfig: Record<string, { gl: string; hl: string; currency: string }> = {
+    RU: { gl: 'ru', hl: 'ru', currency: 'RUB' },
+    US: { gl: 'us', hl: 'en', currency: 'USD' },
+    EU: { gl: 'de', hl: 'de', currency: 'EUR' },
+    ASIA: { gl: 'jp', hl: 'ja', currency: 'JPY' },
   };
 
-  constructor(configService: ConfigService) {
-    this.apiKey = configService.get<string>('SERPAPI_KEY') || 'bwetm5ZbkwqYuBw7eJHTozrU';
+  constructor() {
+    this.apiKey = SEARCHAPI_KEY;
   }
 
   supportsRegion(region: string): boolean {
@@ -35,53 +28,89 @@ export class SerpApiProvider implements SearchProvider {
   }
 
   async search(query: SearchQuery): Promise<SearchOffer[]> {
-    if (!this.apiKey) {
-      this.logger.warn('SerpAPI key not configured, using fallback links');
-      return this.fallbackSearch(query);
-    }
+    if (!this.apiKey) return [];
 
     const config = this.regionConfig[query.region.toUpperCase()];
     if (!config) return [];
 
     try {
-      const params: SerpApiParams = {
-        engine: config.engine,
+      const params = new URLSearchParams({
+        engine: 'google_shopping',
         q: query.text,
         api_key: this.apiKey,
-      };
+        gl: config.gl,
+        hl: config.hl,
+      });
 
-      if (config.gl) params.gl = config.gl;
-      if (config.domain) params.google_domain = config.domain;
-
-      const url = `${this.baseUrl}?${new URLSearchParams(params as any).toString()}`;
+      const url = `${BASE_URL}?${params.toString()}`;
+      this.logger.log(`SearchApi.io request: ${url.replace(this.apiKey, '***')}`);
       const response = await fetch(url);
 
       if (!response.ok) {
-        this.logger.warn(`SerpAPI returned ${response.status}`);
+        const errorText = await response.text();
+        this.logger.warn(`SearchApi.io returned ${response.status}: ${errorText}`);
         return this.fallbackSearch(query);
       }
 
       const data = await response.json();
-      return this.parseResponse(data, query.region.toUpperCase());
+      return this.parseShoppingResults(data, query.region.toUpperCase(), query.text);
     } catch (error) {
-      this.logger.warn(`SerpAPI request failed: ${(error as Error).message}`);
+      this.logger.warn(`SearchApi.io request failed: ${(error as Error).message}`);
       return this.fallbackSearch(query);
     }
   }
 
-  private parseResponse(data: any, region: string): SearchOffer[] {
-    const results: SearchOffer[] = [];
-    const items = data.shopping_results || data.organic_results || [];
+  private getStoreUrl(seller: string, productTitle: string, region: string): string {
+    const s = seller.toLowerCase();
+    const q = encodeURIComponent(productTitle);
 
-    for (const item of items.slice(0, 10)) {
-      results.push({
-        shop: item.source || item.store || 'Store',
-        price: parseFloat(item.price?.replace(/[^0-9.,]/g, '')?.replace(',', '.')) || 0,
-        currency: item.currency || (region === 'EU' ? 'EUR' : region === 'ASIA' ? 'USD' : 'USD'),
-        url: item.link || item.product_link || '',
-        region,
-        shipping: item.shipping ? parseFloat(item.shipping.replace(/[^0-9.]/g, '')) : undefined,
-      });
+    if (s.includes('ozon')) return `https://www.ozon.ru/search?text=${q}`;
+    if (s.includes('wildberries')) return `https://www.wildberries.ru/catalog/0/search.aspx?search=${q}`;
+    if (s.includes('yandex')) return `https://market.yandex.ru/search?text=${q}`;
+    if (s.includes('best buy') || s === 'bestbuy') return `https://www.bestbuy.com/site/searchpage.jsp?st=${q}`;
+    if (s.includes('walmart')) return `https://www.walmart.com/search?q=${q}`;
+    if (s.includes('amazon')) return region === 'EU' || region === 'DE'
+      ? `https://www.amazon.de/s?k=${q}` : `https://www.amazon.com/s?k=${q}`;
+    if (s.includes('aliexpress')) return `https://aliexpress.ru/wholesale?SearchText=${q}`;
+    if (s.includes('ebay')) return `https://www.ebay.com/sch/i.html?_nkw=${q}`;
+    if (s.includes('apple store') || s === 'apple') return `https://www.apple.com/shop/search?q=${q}`;
+    if (s.includes('mediamarkt') || s.includes('media markt')) return `https://www.mediamarkt.de/search?query=${q}`;
+    if (s.includes('zalando')) return `https://www.zalando.de/search?q=${q}`;
+    if (s.includes('target')) return `https://www.target.com/s?searchTerm=${q}`;
+    if (s.includes('costco')) return `https://www.costco.com/search?q=${q}`;
+    if (s.includes('newegg')) return `https://www.newegg.com/p/pl?d=${q}`;
+    if (s.includes('home depot')) return `https://www.homedepot.com/s/${q.replace(/%20/g, '+')}`;
+    if (s.includes('lowes')) return `https://www.lowes.com/search?searchTerm=${q}`;
+    if (s.includes('b&h') || s.includes('bhphoto')) return `https://www.bhphotovideo.com/c/search?q=${q}`;
+    if (s.includes('kns') || s.includes('kns distribution')) return `https://www.knsdistribution.com/search?q=${q}`;
+    if (s.includes('swappie')) return `https://www.swappie.com/search?q=${q}`;
+    if (s.includes('back market')) return `https://www.backmarket.com/search?q=${q}`;
+    if (s.includes('asgoodasnew') || s.includes('as good as new')) return `https://www.asgoodasnew.com/search?q=${q}`;
+    if (s.includes('store77')) return `https://store77.net/search?q=${q}`;
+    if (s.includes('apple-com')) return `https://apple-com.ru/search?q=${q}`;
+    if (s.includes('5element')) return `https://5element.by/search?q=${q}`;
+    if (s.includes('yourfone')) return `https://www.yourfone.de/search?q=${q}`;
+    if (s.includes('mts') || s.includes('мегафон') || s.includes('билайн')) return `https://www.google.com/search?q=${q}&tbm=shop&gl=${region === 'RU' ? 'ru' : 'us'}`;
+
+    return `https://www.google.com/search?q=${q}&tbm=shop&gl=${region === 'RU' ? 'ru' : region === 'EU' ? 'de' : region === 'ASIA' ? 'jp' : 'us'}`;
+  }
+
+  private parseShoppingResults(data: any, region: string, queryText?: string): SearchOffer[] {
+    const results: SearchOffer[] = [];
+    const items = data.shopping_results || data.shopping_ads || [];
+
+    this.logger.log(`SearchApi.io got ${items.length} shopping results for ${region}`);
+
+    for (const item of items.slice(0, 15)) {
+      const price = typeof item.extracted_price === 'number' ? item.extracted_price : 0;
+      if (price <= 0) continue;
+
+      const shop = item.seller || item.source || item.store || 'Store';
+      const productTitle = item.title || queryText || '';
+      const link = this.getStoreUrl(shop, productTitle, region);
+
+      const currency = this.regionConfig[region]?.currency || 'USD';
+      results.push({ shop, price, currency, url: link, region });
     }
 
     return results;
@@ -100,16 +129,13 @@ export class SerpApiProvider implements SearchProvider {
       US: [
         { shop: 'Amazon', price: 0, currency: 'USD', url: `https://www.amazon.com/s?k=${q}`, region: 'US' },
         { shop: 'Walmart', price: 0, currency: 'USD', url: `https://www.walmart.com/search?q=${q}`, region: 'US' },
-        { shop: 'Best Buy', price: 0, currency: 'USD', url: `https://www.bestbuy.com/site/searchpage.jsp?st=${q}`, region: 'US' },
       ],
       EU: [
-        { shop: 'MediaMarkt', price: 0, currency: 'EUR', url: `https://www.mediamarkt.de/search?query=${q}`, region: 'EU' },
         { shop: 'Amazon DE', price: 0, currency: 'EUR', url: `https://www.amazon.de/s?k=${q}`, region: 'EU' },
-        { shop: 'Saturn', price: 0, currency: 'EUR', url: `https://www.saturn.de/search?query=${q}`, region: 'EU' },
+        { shop: 'MediaMarkt', price: 0, currency: 'EUR', url: `https://www.mediamarkt.de/search?query=${q}`, region: 'EU' },
       ],
       ASIA: [
         { shop: 'AliExpress', price: 0, currency: 'USD', url: `https://aliexpress.ru/wholesale?SearchText=${q}`, region: 'ASIA' },
-        { shop: 'Shopee', price: 0, currency: 'USD', url: `https://shopee.sg/search?keyword=${q}`, region: 'ASIA' },
       ],
     };
 

@@ -19,7 +19,7 @@ export class SearchService implements OnModuleInit {
   async onModuleInit() {
     try {
       const { SerpApiProvider } = await import('./providers/serpapi.provider');
-      this.providers.push(new SerpApiProvider(this.configService));
+      this.providers.push(new SerpApiProvider());
     } catch { this.logger.warn('SerpApiProvider not available'); }
 
     this.logger.log(`Search providers: ${this.providers.map(p => p.name).join(', ')}`);
