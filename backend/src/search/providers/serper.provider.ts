@@ -93,8 +93,9 @@ export class SerperProvider implements SearchProvider {
     if (!rawUrl) return '';
     try {
       const u = new URL(rawUrl);
-      const isGoogleRedirect = u.pathname === '/url' && (u.hostname === 'www.google.com' || u.hostname === 'google.com');
-      const isGoogleAd = u.pathname === '/aclk' && (u.hostname.includes('google.com') || u.hostname.includes('doubleclick.net'));
+      const isGoogle = u.hostname.includes('google.com') || u.hostname.includes('google.ru') || u.hostname.includes('doubleclick.net');
+      const isGoogleRedirect = u.pathname === '/url' && isGoogle;
+      const isGoogleAd = u.pathname === '/aclk' && isGoogle;
       if (isGoogleRedirect) {
         const q = u.searchParams.get('q') || u.searchParams.get('url');
         if (q && (q.startsWith('http://') || q.startsWith('https://'))) return q;
@@ -103,8 +104,10 @@ export class SerperProvider implements SearchProvider {
         const adUrl = u.searchParams.get('adurl');
         if (adUrl && (adUrl.startsWith('http://') || adUrl.startsWith('https://'))) return adUrl;
       }
+      // Google Shopping product page — can't extract real store URL
+      if (isGoogle && u.pathname.startsWith('/shopping/')) return '';
     } catch { /* ignore */ }
-    if (rawUrl.includes('google.com') || rawUrl.includes('google.ru') || rawUrl.includes('googlesyndication.com') || rawUrl.includes('doubleclick.net')) return '';
+    // Google ads/tracking URLs — return as-is, better than nothing
     return rawUrl;
   }
 }
