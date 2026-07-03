@@ -78,11 +78,7 @@ export class TmapiProvider implements SearchProvider {
     }));
   }
 
-  private fallbackSearch(query: SearchQuery): SearchOffer[] {
-    const q = encodeURIComponent(query.text);
-    return [
-      { shop: 'Taobao', price: 0, currency: 'CNY', url: `https://s.taobao.com/search?q=${q}`, region: 'ASIA' },
-      { shop: '1688', price: 0, currency: 'CNY', url: `https://www.1688.com/offer/search?keywords=${q}`, region: 'ASIA' },
-    ];
+  private fallbackSearch(_query: SearchQuery): SearchOffer[] {
+    return [];
   }
 }

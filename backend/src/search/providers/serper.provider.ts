@@ -181,32 +181,7 @@ export class SerperProvider implements SearchProvider {
     return results;
   }
 
-  private fallbackSearch(query: SearchQuery): SearchOffer[] {
-    const q = encodeURIComponent(query.text);
-    const region = query.region.toUpperCase();
-
-    const fallbackUrls: Record<string, SearchOffer[]> = {
-      RU: [
-        { shop: 'Ozon', price: 0, currency: 'RUB', url: `https://www.ozon.ru/search/?text=${q}&from_global=true`, region: 'RU' },
-        { shop: 'Wildberries', price: 0, currency: 'RUB', url: `https://www.wildberries.ru/catalog/0/search.aspx?search=${q}`, region: 'RU' },
-        { shop: 'Яндекс Маркет', price: 0, currency: 'RUB', url: `https://market.yandex.ru/search?text=${q}`, region: 'RU' },
-        { shop: 'DNS', price: 0, currency: 'RUB', url: `https://www.dns-shop.ru/search/?q=${q}`, region: 'RU' },
-        { shop: 'М.Видео', price: 0, currency: 'RUB', url: `https://www.mvideo.ru/search?q=${q}`, region: 'RU' },
-      ],
-      US: [
-        { shop: 'Amazon', price: 0, currency: 'USD', url: `https://www.amazon.com/s?k=${q}`, region: 'US' },
-        { shop: 'Walmart', price: 0, currency: 'USD', url: `https://www.walmart.com/search?q=${q}`, region: 'US' },
-        { shop: 'Best Buy', price: 0, currency: 'USD', url: `https://www.bestbuy.com/site/searchpage.jsp?st=${q}`, region: 'US' },
-      ],
-      EU: [
-        { shop: 'MediaMarkt', price: 0, currency: 'EUR', url: `https://www.mediamarkt.de/search?query=${q}`, region: 'EU' },
-        { shop: 'Amazon DE', price: 0, currency: 'EUR', url: `https://www.amazon.de/s?k=${q}`, region: 'EU' },
-      ],
-      ASIA: [
-        { shop: 'AliExpress', price: 0, currency: 'USD', url: `https://aliexpress.ru/wholesale?SearchText=${q}`, region: 'ASIA' },
-      ],
-    };
-
-    return fallbackUrls[region] || fallbackUrls['RU'];
+  private fallbackSearch(_query: SearchQuery): SearchOffer[] {
+    return [];
   }
 }

@@ -31,14 +31,7 @@ export class YandexMarketProvider implements SearchProvider {
     }
   }
 
-  private fallbackSearch(query: string): SearchOffer[] {
-    const q = encodeURIComponent(query);
-    return [
-      { shop: 'Ozon', price: 0, currency: 'RUB', url: `https://www.ozon.ru/search/?text=${q}`, region: 'RU' },
-      { shop: 'Wildberries', price: 0, currency: 'RUB', url: `https://www.wildberries.ru/catalog/0/search.aspx?search=${q}`, region: 'RU' },
-      { shop: 'Яндекс.Маркет', price: 0, currency: 'RUB', url: `https://market.yandex.ru/search?text=${q}`, region: 'RU' },
-      { shop: 'DNS', price: 0, currency: 'RUB', url: `https://www.dns-shop.ru/search/?q=${q}`, region: 'RU' },
-      { shop: 'М.Видео', price: 0, currency: 'RUB', url: `https://www.mvideo.ru/product-list-page?q=${q}`, region: 'RU' },
-    ];
+  private fallbackSearch(_query: string): SearchOffer[] {
+    return [];
   }
 }
