@@ -27,6 +27,11 @@ export class SearchService implements OnModuleInit {
       this.providers.push(new SerperProvider(this.configService));
     } catch { this.logger.warn('SerperProvider not available'); }
 
+    try {
+      const { TmapiProvider } = await import('./providers/tmapi.provider');
+      this.providers.push(new TmapiProvider(this.configService));
+    } catch { this.logger.warn('TmapiProvider not available'); }
+
     this.logger.log(`Search providers: ${this.providers.map(p => p.name).join(', ')}`);
   }
 
