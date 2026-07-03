@@ -17,18 +17,11 @@ describe('SearchService', () => {
   });
 
   describe('onModuleInit', () => {
-    it('registers SerperProvider and TmapiProvider', async () => {
+    it('registers SerpApiProvider', async () => {
       await service.onModuleInit();
       const providers = (service as any).providers;
-      expect(providers.length).toBe(2);
-      expect(providers[0].name).toBe('serper');
-      expect(providers[1].name).toBe('tmapi');
-    });
-
-    it('does NOT register YandexMarketProvider (dead provider removed)', async () => {
-      await service.onModuleInit();
-      const names = (service as any).providers.map((p: any) => p.name);
-      expect(names).not.toContain('yandex_market');
+      expect(providers.length).toBe(1);
+      expect(providers[0].name).toBe('serpapi');
     });
   });
 

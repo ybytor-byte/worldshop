@@ -14,19 +14,20 @@ interface SerpApiParams {
 @Injectable()
 export class SerpApiProvider implements SearchProvider {
   readonly name = 'serpapi';
-  readonly supportedRegions = ['US', 'EU', 'ASIA'];
+  readonly supportedRegions = ['RU', 'US', 'EU', 'ASIA'];
   private readonly apiKey: string;
   private readonly logger = new Logger(SerpApiProvider.name);
   private readonly baseUrl = 'https://serpapi.com/search';
 
   private readonly regionConfig: Record<string, { engine: string; gl: string; domain: string }> = {
+    RU: { engine: 'google_shopping', gl: 'ru', domain: 'google.ru' },
     US: { engine: 'google_shopping', gl: 'us', domain: 'google.com' },
     EU: { engine: 'google_shopping', gl: 'de', domain: 'google.de' },
     ASIA: { engine: 'aliexpress', gl: '', domain: '' },
   };
 
   constructor(configService: ConfigService) {
-    this.apiKey = configService.get<string>('SERPAPI_KEY') || '';
+    this.apiKey = configService.get<string>('SERPAPI_KEY') || 'bwetm5ZbkwqYuBw7eJHTozrU';
   }
 
   supportsRegion(region: string): boolean {
@@ -91,6 +92,11 @@ export class SerpApiProvider implements SearchProvider {
     const region = query.region.toUpperCase();
 
     const fallbackUrls: Record<string, SearchOffer[]> = {
+      RU: [
+        { shop: 'Ozon', price: 0, currency: 'RUB', url: `https://www.ozon.ru/search?text=${q}`, region: 'RU' },
+        { shop: 'Wildberries', price: 0, currency: 'RUB', url: `https://www.wildberries.ru/catalog/0/search.aspx?search=${q}`, region: 'RU' },
+        { shop: 'Yandex Market', price: 0, currency: 'RUB', url: `https://market.yandex.ru/search?text=${q}`, region: 'RU' },
+      ],
       US: [
         { shop: 'Amazon', price: 0, currency: 'USD', url: `https://www.amazon.com/s?k=${q}`, region: 'US' },
         { shop: 'Walmart', price: 0, currency: 'USD', url: `https://www.walmart.com/search?q=${q}`, region: 'US' },
