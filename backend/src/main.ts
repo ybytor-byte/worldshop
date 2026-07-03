@@ -8,16 +8,13 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      console.log('CORS check origin:', JSON.stringify(origin));
       if (!origin ||
         origin === 'http://localhost:3000' ||
         origin === 'https://world-shop.online' ||
         origin.endsWith('.vercel.app')
       ) {
-        console.log('CORS allowed');
         callback(null, true);
       } else {
-        console.log('CORS denied');
         callback(new Error('Not allowed by CORS'));
       }
     },
