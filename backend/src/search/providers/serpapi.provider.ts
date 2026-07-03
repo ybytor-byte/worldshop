@@ -97,17 +97,27 @@ export class SerpApiProvider implements SearchProvider {
 
   private parseShoppingResults(data: any, region: string, queryText?: string): SearchOffer[] {
     const results: SearchOffer[] = [];
-    const items = data.shopping_results || data.shopping_ads || [];
+    const seen = new Set<string>();
 
-    this.logger.log(`SearchApi.io got ${items.length} shopping results for ${region}`);
+    const items = [
+      ...(data.shopping_ads || []),
+      ...(data.shopping_results || []),
+    ];
 
-    for (const item of items.slice(0, 15)) {
+    this.logger.log(`SearchApi.io got ${items.length} items for ${region}`);
+
+    for (const item of items.slice(0, 20)) {
       const price = typeof item.extracted_price === 'number' ? item.extracted_price : 0;
       if (price <= 0) continue;
 
       const shop = item.seller || item.source || item.store || 'Store';
       const productTitle = item.title || queryText || '';
-      const link = this.getStoreUrl(shop, productTitle, region);
+
+      const link = item.link || this.getStoreUrl(shop, productTitle, region);
+
+      const key = `${shop}|${price}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
 
       const currency = this.regionConfig[region]?.currency || 'USD';
       results.push({ shop, price, currency, url: link, region });
