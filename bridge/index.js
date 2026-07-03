@@ -98,7 +98,7 @@ async function processJob(job) {
       },
     });
     const calcData = JSON.parse(calcResult.content[0].text);
-    log(`Best deal: ${calcData.bestDeal?.shop} at ${calcData.bestDeal?.totalRUB} RUB`);
+    log(`Best deal: ${calcData.bestDeal?.shop} at ${calcData.bestDeal?.finalPrice} RUB`);
 
     // Step 4: Save to database
     log(`Saving to database...`);
