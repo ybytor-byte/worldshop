@@ -5,6 +5,7 @@ import { HermesService } from '../hermes/hermes.service';
 import { SerperLensProvider } from '../search/providers/serper-lens.provider';
 import { HermesQueueService } from '../queue/hermes-queue.service';
 import { PriceCalculatorService } from '../logistics/price-calculator.service';
+import { ApiShipService } from '../logistics/apiship.service';
 
 const ALL_REGIONS = ['RU', 'US', 'EU', 'ASIA'];
 
@@ -19,29 +20,81 @@ export class SearchByImageService {
     private serperLens: SerperLensProvider,
     private hermesQueue: HermesQueueService,
     private calculator: PriceCalculatorService,
+    private apiship: ApiShipService,
   ) {}
 
   private async cleanProductName(rawName: string): Promise<string> {
     return rawName.replace(/купить.*$/i, '').replace(/с доставкой.*$/i, '').replace(/цена.*$/i, '').trim().slice(0, 60);
   }
 
-  private enrichOffer(offer: any, categoryId: number, userCountry: 'RU' | 'US' | 'DE' = 'RU') {
-    const origin = this.calculator.inferRegion(offer.url, offer.region);
-    const calc = this.calculator.calculateFinalPrice(offer.price, offer.currency, categoryId, origin, userCountry);
-    return {
+  private async enrichOffers(offers: any[], categoryId: number, toCity: string, userCountry: 'RU' | 'US' | 'DE' = 'RU') {
+    // Group cross-border offers by origin for batched ApiShip calls
+    const crossBorder: Record<string, any[]> = {};
+    const results: any[] = [];
+
+    for (const offer of offers) {
+      const origin = this.calculator.inferRegion(offer.url, offer.region);
+      const isCrossBorder = origin !== userCountry;
+
+      if (isCrossBorder) {
+        if (!crossBorder[origin]) crossBorder[origin] = [];
+        crossBorder[origin].push({ offer, origin });
+      } else {
+        const calc = this.calculator.calculateFinalPrice(offer.price, offer.currency, categoryId, origin, userCountry);
+        results.push({ offer, origin, calc, isCrossBorder: false });
+      }
+    }
+
+    // Batch ApiShip by origin region
+    for (const [origin, group] of Object.entries(crossBorder)) {
+      const firstOffer = group[0].offer;
+      const priceInRub = this.calculator.toRub(firstOffer.price, firstOffer.currency);
+      const weight = this.calculator.getWeight(categoryId);
+
+      let shippingCost: number | null = null;
+      let deliveryDays = 'Доставка уточняется';
+
+      try {
+        const fromCity = origin === 'RU' ? 'Москва' : origin === 'US' ? 'New York' : origin === 'DE' ? 'Berlin' : 'Shanghai';
+        const estimates = await this.apiship.calculateDelivery({
+          weight: Math.max(weight, 0.5), width: 20, height: 15, depth: 10,
+          fromCity, toCity: toCity || 'Москва', declaredPrice: priceInRub,
+        });
+        if (estimates.length > 0) {
+          const best = estimates.reduce((min, e) => e.price < min.price ? e : min);
+          shippingCost = best.price;
+          deliveryDays = `${best.daysMin}-${best.daysMax} дн (${best.carrier})`;
+        }
+      } catch {
+        this.logger.warn(`ApiShip failed for ${origin}, using tariff fallback`);
+      }
+
+      for (const { offer } of group) {
+        let calc: any;
+        if (shippingCost !== null) {
+          const base = this.calculator.calculateFinalPrice(offer.price, offer.currency, categoryId, origin, userCountry);
+          calc = { ...base, shippingCost, deliveryDays };
+        } else {
+          calc = this.calculator.calculateFinalPrice(offer.price, offer.currency, categoryId, origin, userCountry);
+        }
+        results.push({ offer, origin, calc, isCrossBorder: true });
+      }
+    }
+
+    return results.map(({ offer, origin, calc }) => ({
       shop: offer.shop || 'Unknown',
       price: offer.price,
       currency: offer.currency,
       url: offer.url,
       region: offer.region || origin,
-      shipping: calc.shippingCost,
+      shipping: Math.round(calc.shippingCost),
       deliveryDays: calc.deliveryDays,
       customsDuty: calc.customsDuty,
-      finalPrice: calc.finalPrice,
+      finalPrice: Math.round(calc.finalPrice),
       priceInRub: calc.priceInRub,
       weight: calc.weight,
       isCrossBorder: calc.isCrossBorder,
-    };
+    }));
   }
 
   async searchByImageUpload(buffer: Buffer, mimetype: string, region = 'RU') {
@@ -75,13 +128,11 @@ export class SearchByImageService {
     const allOffers = regionResults.flat();
     const filteredOffers = allOffers.filter(o => o.price > 0 || (o.price === 0 && o.url && !o.url.includes('google.com')));
 
-    // Enrich every offer with shipping + customs calculation
-    const enriched = filteredOffers.map(o => this.enrichOffer(o, 19, 'RU'));
+    // Enrich with real ApiShip shipping + per-country customs
+    const enriched = await this.enrichOffers(filteredOffers, 19, 'Москва', 'RU');
 
-    // Sort by final price ascending
     enriched.sort((a, b) => a.finalPrice - b.finalPrice);
 
-    // Enqueue deep processing for Hermes Agent (non-blocking, fire-and-forget)
     this.hermesQueue.addJob({ imageUrl, productName, region: region || 'RU' })
       .catch(err => this.logger.warn('Failed to enqueue Hermes job', err));
 
@@ -106,7 +157,7 @@ export class SearchByImageService {
     );
 
     const allOffers = regionResults.flat();
-    const enriched = allOffers.map(o => this.enrichOffer(o, 19, 'RU'));
+    const enriched = await this.enrichOffers(allOffers, 19, 'Москва', 'RU');
     enriched.sort((a, b) => a.finalPrice - b.finalPrice);
 
     return { query: cleanQuery, region, offers: enriched, keywords };
