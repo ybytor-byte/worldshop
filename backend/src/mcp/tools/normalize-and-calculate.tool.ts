@@ -9,13 +9,14 @@ export class NormalizeAndCalculateTool implements McpTool {
 
   schema: McpToolSchema = {
     name: 'normalize_and_calculate',
-    description: 'Calculate final price: real shipping via ApiShip API + customs duty via math formula (15% above 200€). Returns best deal sorted by total cost.',
+    description: 'Final price: real shipping via ApiShip API + per-country customs (RU 15%>200€, US 10%>$800, DE 19% VAT). Best deal sorted by total cost.',
     inputSchema: {
       type: 'object',
       properties: {
         offers: { type: 'array', description: 'Array of offers from search results' },
-        categoryId: { type: 'number', description: 'Category ID for weight lookup (14=shoes, 15=clothing, 16=electronics, 22=phone, 23=laptop)', default: 19 },
-        toCity: { type: 'string', description: 'Destination city for last-mile delivery', default: 'Москва' },
+        categoryId: { type: 'number', default: 19 },
+        toCity: { type: 'string', default: 'Москва' },
+        userCountry: { type: 'string', description: 'Buyer country: RU, US, or DE', default: 'RU' },
       },
     },
   };
@@ -26,8 +27,9 @@ export class NormalizeAndCalculateTool implements McpTool {
   ) {}
 
   async execute(args: Record<string, any>): Promise<McpToolResult> {
-    const { offers, categoryId, toCity } = args;
+    const { offers, categoryId, toCity, userCountry } = args;
     const catId = typeof categoryId === 'number' ? categoryId : 19;
+    const country: 'RU' | 'US' | 'DE' = (userCountry || 'RU') as 'RU' | 'US' | 'DE';
 
     if (!offers || !Array.isArray(offers) || offers.length === 0) {
       return {
@@ -42,47 +44,58 @@ export class NormalizeAndCalculateTool implements McpTool {
     for (const offer of offers) {
       const origin = this.calculator.inferRegion(offer.url, offer.region);
       const priceInRub = this.calculator.toRub(offer.price, offer.currency);
-      const priceInEuro = this.calculator.toEuro(offer.price, offer.currency);
+      const isCrossBorder = origin !== country;
 
-      const normalizedOffer: any = {
+      // Base calc (tariff shipping + customs)
+      const calc = this.calculator.calculateFinalPrice(offer.price, offer.currency, catId, origin, country);
+
+      // Try ApiShip for real international rates, fallback to tariff
+      let shippingCost = calc.shippingCost;
+      let deliveryDays = calc.deliveryDays;
+      if (isCrossBorder) {
+        try {
+          const apishipResult = await this.apiship.calculateDelivery({
+            weight: Math.max(weight, 0.5), width: 20, height: 15, depth: 10,
+            fromCity: origin === 'RU' ? 'Москва' : origin === 'US' ? 'New York' : 'Berlin',
+            toCity: toCity || 'Москва',
+            declaredPrice: priceInRub,
+          });
+          if (apishipResult.length > 0) {
+            const best = apishipResult.reduce((min, e) => e.price < min.price ? e : min);
+            shippingCost = best.price;
+            deliveryDays = `${best.daysMin}-${best.daysMax} дн (${best.carrier})`;
+          }
+        } catch {
+          this.logger.warn(`ApiShip fallback to tariff for ${origin}->${country}`);
+        }
+      }
+
+      const finalPrice = priceInRub + shippingCost + calc.customsDuty;
+
+      normalized.push({
         shop: offer.shop || offer.store || offer.seller || 'Unknown',
         price: offer.price,
         currency: offer.currency,
         priceInRub,
         weight,
-        url: offer.url,
-        originRegion: origin,
-      };
-
-      // Shipping via ApiShip API (international + last-mile)
-      const shippingEstimates = await this.apiship.calculateDelivery({
-        weight: Math.max(weight, 0.5),
-        width: 20, height: 15, depth: 10,
-        fromCity: origin === 'RU' ? 'Москва' : 'Москва',
-        toCity: toCity || 'Москва',
-        declaredPrice: priceInRub,
-      });
-      const shippingCost = shippingEstimates.reduce((min, e) => e.price < min.price ? e : min, shippingEstimates[0])?.price || 0;
-      const deliveryDays = shippingEstimates.map(e => `${e.carrier}: ${e.daysMin}-${e.daysMax} дн`).join(', ');
-
-      // Customs via math formula
-      const customsDuty = origin !== 'RU' ? this.calculator.calculateCustomsDuty(priceInEuro, weight) : 0;
-
-      const finalPrice = priceInRub + shippingCost + customsDuty;
-
-      normalized.push({
-        ...normalizedOffer,
         shippingCost: Math.round(shippingCost),
         deliveryDays,
-        customsDuty,
+        customsDuty: calc.customsDuty,
         finalPrice: Math.round(finalPrice),
+        url: offer.url,
+        originRegion: origin,
+        userCountry: country,
+        isCrossBorder,
       });
     }
 
     normalized.sort((a: any, b: any) => a.finalPrice - b.finalPrice);
 
     return {
-      content: [{ type: 'text', text: JSON.stringify({ categoryId: catId, normalized, bestDeal: normalized[0] || null, totalOptions: normalized.length }, null, 2) }],
+      content: [{ type: 'text', text: JSON.stringify({
+        categoryId: catId, userCountry: country, weight,
+        normalized, bestDeal: normalized[0] || null, totalOptions: normalized.length,
+      }, null, 2) }],
     };
   }
 }

@@ -89,12 +89,14 @@ async function processJob(job) {
     log(`Identified: ${analysis.brand} ${analysis.model} (SKU: ${analysis.sku || 'N/A'}, cat: ${analysis.categoryId})`);
 
     // Step 3: Normalize & calculate logistics (pure math — 0ms)
-    log(`Calculating logistics...`);
+    log(`Calculating logistics for ${region}...`);
     const calcResult = await mcpCall('tools/call', {
       name: 'normalize_and_calculate',
       arguments: {
         offers: analysis.offers,
         categoryId: analysis.categoryId || 19,
+        userCountry: region || 'RU',
+        toCity: 'Москва',
       },
     });
     const calcData = JSON.parse(calcResult.content[0].text);
