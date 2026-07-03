@@ -140,5 +140,59 @@ describe('SerperProvider', () => {
       const results = await provider.search({ text: 'Nike Air Max', region: 'RU' });
       expect(results[0].url).toBe('https://www.nike.com/air-max');
     });
+
+    it('parses price as plain number (not object)', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'MacBook', source: 'Apple', price: 129900, link: 'https://apple.com/macbook' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'MacBook', region: 'US' });
+      expect(results).toHaveLength(1);
+      expect(results[0].price).toBe(129900);
+      expect(results[0].currency).toBe('USD');
+    });
+
+    it('parses price as string with currency symbol', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'Samsung TV', source: 'MediaMarkt', price: '799,99 €', link: 'https://mediamarkt.de/tv' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'Samsung TV', region: 'EU' });
+      expect(results).toHaveLength(1);
+      expect(results[0].price).toBe(799.99);
+      expect(results[0].currency).toBe('EUR');
+    });
+
+    it('returns offers for multiple regions with correct currencies', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'iPhone 15', source: 'Amazon', price: { amount: 899, currency: 'USD' }, link: 'https://amazon.com/iphone' },
+          ],
+        }),
+      } as any);
+      const results = await provider.search({ text: 'iPhone 15', region: 'US' });
+      expect(results[0].currency).toBe('USD');
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          shopping: [
+            { title: 'iPhone 15', source: 'Amazon JP', price: { amount: 149800, currency: 'JPY' }, link: 'https://amazon.co.jp/iphone' },
+          ],
+        }),
+      } as any);
+      const resultsAsia = await provider.search({ text: 'iPhone 15', region: 'ASIA' });
+      expect(resultsAsia[0].currency).toBe('JPY');
+    });
   });
 });

@@ -54,10 +54,21 @@ export class SerperProvider implements SearchProvider {
     const results: SearchOffer[] = [];
 
     for (const item of items.slice(0, 15)) {
-      const price = item.price?.amount || 0;
+      // price может быть { amount, currency } | number | string
+      const price =
+        typeof item.price === 'object' && item.price !== null
+          ? (item.price.amount ?? 0)
+          : typeof item.price === 'number'
+            ? item.price
+            : parseFloat(String(item.price ?? '').replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
+
       if (price <= 0) continue;
 
-      const currency = item.price?.currency || this.defaultCurrency(region);
+      const currency =
+        typeof item.price === 'object' && item.price !== null
+          ? (item.price.currency || this.defaultCurrency(region))
+          : this.defaultCurrency(region);
+
       const shop = item.source || item.store || item.title || 'Store';
       const url = this.pickUrl(item);
 
