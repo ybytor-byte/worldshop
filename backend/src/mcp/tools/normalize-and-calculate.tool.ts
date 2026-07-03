@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { McpTool, McpToolSchema, McpToolResult } from '../mcp-protocol.service';
+import { ApiShipService } from '../../logistics/apiship.service';
 
 interface Offer {
   shop: string;
@@ -19,6 +20,16 @@ const CURRENCY_RATES: Record<string, number> = {
   JPY: 0.6,
 };
 
+const CATEGORY_WEIGHT: Record<string, number> = {
+  electronics: 0.5,
+  clothing: 0.3,
+  shoes: 0.8,
+  books: 0.4,
+  cosmetics: 0.2,
+  toys: 0.3,
+  default: 0.5,
+};
+
 @Injectable()
 export class NormalizeAndCalculateTool implements McpTool {
   private readonly logger = new Logger(NormalizeAndCalculateTool.name);
@@ -32,9 +43,12 @@ export class NormalizeAndCalculateTool implements McpTool {
         offers: { type: 'array', description: 'Array of offers from search results' },
         destinationRegion: { type: 'string', description: 'Destination region for delivery: RU, US, EU', default: 'RU' },
         productCategory: { type: 'string', description: 'Product category (electronics, clothing, shoes, etc.)', default: 'electronics' },
+        toCity: { type: 'string', description: 'Destination city for ApiShip last-mile delivery', default: 'Москва' },
       },
     },
   };
+
+  constructor(private apiship: ApiShipService) {}
 
   private getDutyRate(category: string): number {
     const rates: Record<string, number> = {
@@ -50,16 +64,25 @@ export class NormalizeAndCalculateTool implements McpTool {
     return rates[category?.toLowerCase()] || rates.default;
   }
 
-  private getShippingEstimate(originRegion: string, destRegion: string, price: number): number {
+  private async getShippingRUB(originRegion: string, destRegion: string, category: string, fromCity: string, toCity: string): Promise<number> {
     if (originRegion === destRegion) return 0;
+    const weight = CATEGORY_WEIGHT[category?.toLowerCase()] || CATEGORY_WEIGHT.default;
+
     if (destRegion === 'RU') {
-      if (originRegion === 'ASIA') return price < 200 ? 5 : 15;
-      if (originRegion === 'US') return price < 200 ? 10 : 25;
-      if (originRegion === 'EU') return price < 200 ? 8 : 20;
+      if (originRegion === 'RU') {
+        const estimates = await this.apiship.calculateDelivery({
+          weight, width: 20, height: 15, depth: 10,
+          fromCity: fromCity || 'Москва', toCity: toCity || 'Москва',
+          declaredPrice: 0,
+        });
+        const best = estimates.reduce((min, e) => e.price < min.price ? e : min, estimates[0]);
+        return best?.price || 0;
+      }
+      if (originRegion === 'ASIA') return 15 * 90;
+      if (originRegion === 'US') return 25 * 90;
+      if (originRegion === 'EU') return 20 * 90;
     }
-    if (destRegion === 'US') return 15;
-    if (destRegion === 'EU') return 12;
-    return 10;
+    return 10 * 90;
   }
 
   private toRUB(price: number, currency: string): number {
@@ -78,7 +101,7 @@ export class NormalizeAndCalculateTool implements McpTool {
   }
 
   async execute(args: Record<string, any>): Promise<McpToolResult> {
-    const { offers, destinationRegion, productCategory } = args;
+    const { offers, destinationRegion, productCategory, toCity } = args;
     const dest = (destinationRegion || 'RU').toUpperCase();
     const category = productCategory || 'electronics';
 
@@ -91,14 +114,15 @@ export class NormalizeAndCalculateTool implements McpTool {
 
     const dutyRate = this.getDutyRate(category);
 
-    const normalized = offers.map((offer: any) => {
+    const normalized: any[] = [];
+    for (const offer of offers) {
       const origin = this.inferRegion(offer);
       const priceRUB = this.toRUB(offer.price, offer.currency);
-      const shippingRUB = this.getShippingEstimate(origin, dest, offer.price) * CURRENCY_RATES.USD;
+      const shippingRUB = await this.getShippingRUB(origin, dest, category, offer.region || toCity || 'Москва', toCity || 'Москва');
       const dutyRUB = origin !== dest ? Math.round(priceRUB * dutyRate) : 0;
       const totalRUB = priceRUB + shippingRUB + dutyRUB;
 
-      return {
+      normalized.push({
         shop: offer.shop,
         price: offer.price,
         currency: offer.currency,
@@ -108,8 +132,8 @@ export class NormalizeAndCalculateTool implements McpTool {
         totalRUB,
         url: offer.url,
         originRegion: origin,
-      };
-    });
+      });
+    }
 
     normalized.sort((a: any, b: any) => a.totalRUB - b.totalRUB);
 

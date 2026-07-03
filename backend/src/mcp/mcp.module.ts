@@ -7,11 +7,12 @@ import { NormalizeAndCalculateTool } from './tools/normalize-and-calculate.tool'
 import { WriteToWorldshopStoragesTool } from './tools/write-to-worldshop-storages.tool';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { SearchModule } from '../search/search.module';
+import { LogisticsModule } from '../logistics/logistics.module';
 import { SerperLensProvider } from '../search/providers/serper-lens.provider';
 import { SerperProvider } from '../search/providers/serper.provider';
 
 @Module({
-  imports: [CloudinaryModule, SearchModule],
+  imports: [CloudinaryModule, SearchModule, LogisticsModule],
   controllers: [McpController, McpProtocolController],
   providers: [
     SerperLensProvider, SerperProvider, McpProtocolService,
