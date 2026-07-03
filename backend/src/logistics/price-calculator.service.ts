@@ -28,6 +28,7 @@ const RATES: Record<string, number> = {
 
 const REGION_MAP: Record<string, string> = {
   US: 'US', EU: 'DE', ASIA: 'CN', RU: 'RU',
+  CN: 'CN', DE: 'DE',
 };
 
 type UserCountry = 'RU' | 'US' | 'DE';
@@ -78,8 +79,8 @@ export class PriceCalculatorService {
     if (explicitRegion) return explicitRegion.toUpperCase();
     const u = (url || '').toLowerCase();
     if (u.includes('ozon') || u.includes('wildberries') || u.includes('yandex') || u.includes('dns-shop')) return 'RU';
+    if (u.includes('amazon.de') || u.includes('amazon.fr') || u.includes('amazon.it') || u.includes('amazon.co.uk') || u.includes('mediamarkt') || u.includes('zalando')) return 'DE';
     if (u.includes('amazon') || u.includes('walmart') || u.includes('bestbuy') || u.includes('ebay')) return 'US';
-    if (u.includes('mediamarkt') || u.includes('amazon.de') || u.includes('amazon.fr') || u.includes('amazon.it') || u.includes('zalando')) return 'DE';
     if (u.includes('taobao') || u.includes('1688') || u.includes('aliexpress') || u.includes('jd.com')) return 'CN';
     return 'RU';
   }
