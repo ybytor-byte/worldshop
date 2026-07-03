@@ -1,0 +1,15 @@
+{
+  "name": "worldshop-hermes-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local bridge worker: listens to Redis BullMQ queue, calls Hermes Agent at localhost:56677 for deep product analysis",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "bullmq": "^5.0.0",
+    "ioredis": "^5.0.0",
+    "dotenv": "^16.0.0"
+  }
+}

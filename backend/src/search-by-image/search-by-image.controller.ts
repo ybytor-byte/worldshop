@@ -1,14 +1,18 @@
 import {
-  Controller, Post, UploadedFile, UseInterceptors, BadRequestException, Body,
+  Controller, Post, Get, Param, UploadedFile, UseInterceptors, BadRequestException, Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { SearchByImageService } from './search-by-image.service';
+import { HermesQueueService } from '../queue/hermes-queue.service';
 
 @ApiTags('search')
 @Controller('search-by-image')
 export class SearchByImageController {
-  constructor(private service: SearchByImageService) {}
+  constructor(
+    private service: SearchByImageService,
+    private hermesQueue: HermesQueueService,
+  ) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('image'))
@@ -45,5 +49,12 @@ export class SearchByImageController {
   @ApiOperation({ summary: 'Search by extracted keywords (no image upload)' })
   async searchByKeywords(@Body() body: { keywords: string[]; region?: string }) {
     return this.service.searchByKeywords(body.keywords || [], body.region || 'RU');
+  }
+
+  @Get('hermes/status/:jobId')
+  @ApiOperation({ summary: 'Check Hermes deep processing job status' })
+  async checkHermesStatus(@Param('jobId') jobId: string) {
+    const status = await this.hermesQueue.getJobStatus(jobId);
+    return { jobId, status };
   }
 }

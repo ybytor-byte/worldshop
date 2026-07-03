@@ -10,3 +10,5 @@ dist/
 
 .vercel
 .env*
+bridge/node_modules/
+bridge/.env

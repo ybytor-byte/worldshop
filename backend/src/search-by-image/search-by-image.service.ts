@@ -4,6 +4,7 @@ import { SearchService } from '../search/search.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { HermesService } from '../hermes/hermes.service';
 import { SerperLensProvider } from '../search/providers/serper-lens.provider';
+import { HermesQueueService } from '../queue/hermes-queue.service';
 
 @Injectable()
 export class SearchByImageService {
@@ -15,6 +16,7 @@ export class SearchByImageService {
     private cloudinary: CloudinaryService,
     private hermes: HermesService,
     private serperLens: SerperLensProvider,
+    private hermesQueue: HermesQueueService,
   ) {}
 
   private async cleanProductName(rawName: string): Promise<string> {
@@ -48,11 +50,20 @@ export class SearchByImageService {
       this.logger.warn('Serper Shopping failed');
     }
 
+    const filteredOffers = offers.filter(o => o.price > 0 || (o.price === 0 && o.url && !o.url.includes('google.com')));
+
+    // Enqueue deep processing for Hermes Agent (non-blocking, fire-and-forget)
+    this.hermesQueue.addJob({
+      imageUrl,
+      productName,
+      region: region || 'RU',
+    }).catch(err => this.logger.warn('Failed to enqueue Hermes job', err));
+
     return {
       identified: true,
       productName,
       rawProductName,
-      offers: offers.filter(o => o.price > 0 || (o.price === 0 && o.url && !o.url.includes('google.com'))),
+      offers: filteredOffers,
       visualMatches: lensResults.map(r => ({ title: r.title, source: r.source, link: r.link, imageUrl: r.imageUrl })),
     };
   }
