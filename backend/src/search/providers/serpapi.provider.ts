@@ -44,7 +44,11 @@ export class SerpApiProvider implements SearchProvider {
 
       const url = `${BASE_URL}?${params.toString()}`;
       this.logger.log(`SearchApi.io request: ${url.replace(this.apiKey, '***')}`);
-      const response = await fetch(url);
+      
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -55,7 +59,12 @@ export class SerpApiProvider implements SearchProvider {
       const data = await response.json();
       return this.parseShoppingResults(data, query.region.toUpperCase(), query.text);
     } catch (error) {
-      this.logger.warn(`SearchApi.io request failed: ${(error as Error).message}`);
+      const msg = (error as Error).message;
+      if (msg.includes('abort')) {
+        this.logger.warn('SearchApi.io request timed out');
+      } else {
+        this.logger.warn(`SearchApi.io request failed: ${msg}`);
+      }
       return this.fallbackSearch(query);
     }
   }

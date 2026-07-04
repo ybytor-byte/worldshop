@@ -1,7 +1,7 @@
 import { Controller, Post, Get, Param, Body, UseGuards, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { McpGuard } from './mcp.guard';
-import { SerperLensProvider } from '../search/providers/serper-lens.provider';
+import { SearchApiLensProvider } from '../search/providers/searchapi-lens.provider';
 import { SerperProvider } from '../search/providers/serper.provider';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -11,17 +11,17 @@ import { PrismaService } from '../prisma/prisma.service';
 export class McpController {
   constructor(
     private config: ConfigService,
-    private serperLens: SerperLensProvider,
+    private searchApiLens: SearchApiLensProvider,
     private serper: SerperProvider,
     private cloudinary: CloudinaryService,
     private prisma: PrismaService,
   ) {}
 
-  @Post('serper-lens')
-  async serperLensSearch(@Body() body: { imageUrl: string }) {
+  @Post('searchapi-lens')
+  async searchApiLensSearch(@Body() body: { imageUrl: string }) {
     if (!body.imageUrl) throw new BadRequestException('imageUrl required');
-    const results = await this.serperLens.identifyByImage(body.imageUrl, 'ru', 'ru');
-    const productName = this.serperLens.extractProductName(results);
+    const results = await this.searchApiLens.identifyByImage(body.imageUrl, 'ru', 'ru');
+    const productName = this.searchApiLens.extractProductName(results);
     return {
       productName,
       visualMatches: results.map(r => ({ title: r.title, source: r.source, link: r.link, imageUrl: r.imageUrl })),

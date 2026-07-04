@@ -6,12 +6,12 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { HermesModule } from '../hermes/hermes.module';
 import { QueueModule } from '../queue/queue.module';
 import { LogisticsModule } from '../logistics/logistics.module';
-import { SerperLensProvider } from '../search/providers/serper-lens.provider';
+import { SearchApiLensProvider } from '../search/providers/searchapi-lens.provider';
 
 @Module({
   imports: [SearchModule, CloudinaryModule, HermesModule, QueueModule, LogisticsModule],
   controllers: [SearchByImageController],
-  providers: [SearchByImageService, SerperLensProvider],
-  exports: [SerperLensProvider],
+  providers: [SearchByImageService, SearchApiLensProvider],
+  exports: [SearchApiLensProvider],
 })
 export class SearchByImageModule {}

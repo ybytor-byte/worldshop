@@ -32,11 +32,15 @@ export class SerperProvider implements SearchProvider {
       const body: Record<string, any> = { q: query.text, gl };
       if (query.limit) body.num = query.limit;
 
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-API-KEY': this.apiKey },
         body: JSON.stringify(body),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       if (!response.ok) return [];
 

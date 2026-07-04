@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { McpTool, McpToolSchema, McpToolResult } from '../mcp-protocol.service';
-import { SerperLensProvider } from '../../search/providers/serper-lens.provider';
+import { SearchApiLensProvider } from '../../search/providers/searchapi-lens.provider';
 import { SearchService } from '../../search/search.service';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class FetchGlobalMarketDataTool implements McpTool {
 
   constructor(
     private config: ConfigService,
-    private serperLens: SerperLensProvider,
+    private searchApiLens: SearchApiLensProvider,
     private searchService: SearchService,
   ) {}
 
@@ -35,8 +35,8 @@ export class FetchGlobalMarketDataTool implements McpTool {
     let visualMatches: any[] = [];
 
     if (imageUrl && !productName) {
-      const lensResults = await this.serperLens.identifyByImage(imageUrl, 'ru', 'ru');
-      productName = this.serperLens.extractProductName(lensResults) || '';
+      const lensResults = await this.searchApiLens.identifyByImage(imageUrl, 'ru', 'ru');
+      productName = this.searchApiLens.extractProductName(lensResults) || '';
       visualMatches = lensResults.map(r => ({ title: r.title, source: r.source, link: r.link, imageUrl: r.imageUrl }));
     }
 

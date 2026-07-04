@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SearchService } from '../search/search.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { HermesService } from '../hermes/hermes.service';
-import { SerperLensProvider } from '../search/providers/serper-lens.provider';
+import { SearchApiLensProvider } from '../search/providers/searchapi-lens.provider';
 import { HermesQueueService } from '../queue/hermes-queue.service';
 import { PriceCalculatorService } from '../logistics/price-calculator.service';
 import { ApiShipService } from '../logistics/apiship.service';
@@ -17,7 +17,7 @@ export class SearchByImageService {
     private searchService: SearchService,
     private cloudinary: CloudinaryService,
     private hermes: HermesService,
-    private serperLens: SerperLensProvider,
+    private searchApiLens: SearchApiLensProvider,
     private hermesQueue: HermesQueueService,
     private calculator: PriceCalculatorService,
     private apiship: ApiShipService,
@@ -101,8 +101,8 @@ export class SearchByImageService {
     const imageUrl = await this.cloudinary.uploadImage(buffer);
     this.logger.log(`Image uploaded to Cloudinary: ${imageUrl}`);
 
-    const lensResults = await this.serperLens.identifyByImage(imageUrl, 'ru', 'ru');
-    const rawProductName = this.serperLens.extractProductName(lensResults);
+    const lensResults = await this.searchApiLens.identifyByImage(imageUrl, 'ru', 'ru');
+    const rawProductName = this.searchApiLens.extractProductName(lensResults);
 
     if (!rawProductName) {
       return {

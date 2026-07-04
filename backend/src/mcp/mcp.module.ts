@@ -8,14 +8,14 @@ import { WriteToWorldshopStoragesTool } from './tools/write-to-worldshop-storage
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { SearchModule } from '../search/search.module';
 import { LogisticsModule } from '../logistics/logistics.module';
-import { SerperLensProvider } from '../search/providers/serper-lens.provider';
+import { SearchApiLensProvider } from '../search/providers/searchapi-lens.provider';
 import { SerperProvider } from '../search/providers/serper.provider';
 
 @Module({
   imports: [CloudinaryModule, SearchModule, LogisticsModule],
   controllers: [McpController, McpProtocolController],
   providers: [
-    SerperLensProvider, SerperProvider, McpProtocolService,
+    SearchApiLensProvider, SerperProvider, McpProtocolService,
     FetchGlobalMarketDataTool, NormalizeAndCalculateTool, WriteToWorldshopStoragesTool,
   ],
 })
