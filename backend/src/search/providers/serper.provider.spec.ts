@@ -176,7 +176,7 @@ describe('SerperProvider', () => {
         ok: true,
         json: () => Promise.resolve({
           shopping: [
-            { title: 'iPhone 15', source: 'Amazon', price: { amount: 899, currency: 'USD' }, link: 'https://amazon.com/iphone' },
+            { title: 'iPhone 15', source: 'Best Buy', price: { amount: 899, currency: 'USD' }, link: 'https://bestbuy.com/iphone' },
           ],
         }),
       } as any);
@@ -187,7 +187,7 @@ describe('SerperProvider', () => {
         ok: true,
         json: () => Promise.resolve({
           shopping: [
-            { title: 'iPhone 15', source: 'Amazon JP', price: { amount: 149800, currency: 'JPY' }, link: 'https://amazon.co.jp/iphone' },
+            { title: 'iPhone 15', source: 'Yamada Denki', price: { amount: 149800, currency: 'JPY' }, link: 'https://yamada-denki.jp/iphone' },
           ],
         }),
       } as any);

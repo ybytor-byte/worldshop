@@ -47,7 +47,6 @@ export class McpController {
       'mobilo4ka': (q) => `https://mobilo4ka.ru/search?q=${q}`,
       'apple-com': (q) => `https://apple-com.ru/search?q=${q}`,
       'ipac': (q) => `https://ipac67.ru/search?q=${q}`,
-      'amazon': (q) => `https://www.amazon.com/s?k=${q}`,
       'walmart': (q) => `https://www.walmart.com/search?q=${q}`,
       'ebay': (q) => `https://www.ebay.com/sch/i.html?_nkw=${q}`,
       'bestbuy': (q) => `https://www.bestbuy.com/site/searchpage.jsp?st=${q}`,
@@ -59,7 +58,7 @@ export class McpController {
     const region = (body.region || 'RU').toUpperCase();
     const fallbackStore: Record<string, string> = {
       RU: `https://www.ozon.ru/search/?text=${q}&from_global=true`,
-      US: `https://www.amazon.com/s?k=${q}`,
+      US: `https://www.bestbuy.com/site/searchpage.jsp?st=${q}`,
       EU: `https://www.mediamarkt.de/search?query=${q}`,
       ASIA: `https://aliexpress.ru/wholesale?SearchText=${q}`,
     };

@@ -163,7 +163,6 @@ function OfferCard({ offer, dest }: { offer: Offer; dest: string }) {
 }
 
 const SHOP_COLORS: Record<string, string> = {
-  'Amazon (USA)': '#FF9900',
   'Best Buy': '#0046BE',
   'MediaMarkt (DE)': '#FFCC00',
   'Fnac (FR)': '#E2001A',

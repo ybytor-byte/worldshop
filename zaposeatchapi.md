@@ -81,8 +81,8 @@
 {
   "position": 1,
   "title": "Sony WH-1000XM4 Wireless Noise Cancelling",
-  "link": "https://www.amazon.com/Sony-WH-1000XM4-Canceling-Headphones/dp/B0863FR3S9",
-  "source": "Amazon",
+  "link": "https://www.bestbuy.com/product/sony-wh-1000xm4/",
+  "source": "Best Buy",
   "price": "$248.00",
   "extracted_price": 248.0,
   "currency": "USD",

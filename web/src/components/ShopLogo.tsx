@@ -51,13 +51,6 @@ const LOGOS: Record<string, React.ReactNode> = {
       <text x="24" y="32" textAnchor="middle" fill="white" fontSize="22" fontWeight="800" fontFamily="Arial">C</text>
     </svg>
   ),
-  Amazon: (
-    <svg viewBox="0 0 48 48" fill="none" className="w-10 h-10">
-      <rect width="48" height="48" rx="8" fill="#232F3E" />
-      <text x="24" y="28" textAnchor="middle" fill="#FF9900" fontSize="16" fontWeight="800" fontFamily="Arial">amazon</text>
-      <path d="M14 32c4 2 10 3 16 1l-2-4" stroke="#FF9900" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-    </svg>
-  ),
   MediaMarkt: (
     <svg viewBox="0 0 48 48" fill="none" className="w-10 h-10">
       <rect width="48" height="48" rx="8" fill="#E30613" />

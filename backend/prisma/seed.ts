@@ -23,7 +23,6 @@ interface SeedProduct {
 
 const REGION_SHOPS: Record<string, { shop: string; url: (q: string) => string }[]> = {
   US: [
-    { shop: 'Amazon (USA)', url: (q) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}` },
     { shop: 'Best Buy', url: (q) => `https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(q)}` },
   ],
   EU: [

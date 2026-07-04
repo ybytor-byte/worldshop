@@ -4,7 +4,7 @@
 1. Цели и сценарий использования
 Пользователь устанавливает браузерное расширение (Chrome MV3).
 
-Открывает страницу товара (Amazon, AliExpress и др.), расширение “считывает” карточку товара, чистит DOM и отправляет данные на бэкенд.
+Открывает страницу товара (AliExpress и др.), расширение “считывает” карточку товара, чистит DOM и отправляет данные на бэкенд.
 
 Бэкенд ставит задачу в очередь, локальная мультимодальная модель Gemma 4 (через Hermes‑агент) нормализует данные: бренд, модель, цена, спецификации.
 
@@ -20,7 +20,7 @@ Manifest V3:
 
 background — service worker.
 
-content_scripts — для товарных доменов (Amazon, AliExpress, и т.п.).
+content_scripts — для товарных доменов (AliExpress, и т.п.).
 
 permissions: storage, activeTab, scripting, tabs.
 
@@ -64,7 +64,7 @@ URL текущей страницы;
 ts
 interface RawProductPayload {
   url: string;
-  shop: string;            // "amazon", "aliexpress", ...
+  shop: string;            // "dns", "ozon", "aliexpress", ...
   title: string;
   priceBlockText: string;  // сырой текст с ценой/валютой
   specsText: string;       // очищенный текст характеристик / описание

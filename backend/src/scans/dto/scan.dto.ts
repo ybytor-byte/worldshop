@@ -6,7 +6,7 @@ export class IngestProductDto {
   @IsUrl()
   url: string;
 
-  @ApiProperty({ description: 'Shop identifier (e.g. amazon, ozon)' })
+  @ApiProperty({ description: 'Shop identifier (e.g. dns, ozon)' })
   @IsString()
   shop: string;
 

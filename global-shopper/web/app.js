@@ -11,7 +11,7 @@ const PRODUCTS_DB = [
         image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=150&q=80',
         keywords: ['iphone', 'айфон', 'apple', '15', 'pro', 'max', 'phone', 'телефон', 'смартфон'],
         offers: [
-            { id: 'off-us', store: 'Amazon (USA)', region: 'US', basePriceUSD: 1199, shippingUSD: 45, deliveryDays: '10-14 дней', link: 'https://amazon.com' },
+            { id: 'off-us', store: 'Best Buy (USA)', region: 'US', basePriceUSD: 1199, shippingUSD: 45, deliveryDays: '10-14 дней', link: 'https://bestbuy.com' },
             { id: 'off-eu', store: 'MediaMarkt (Germany)', region: 'EU', basePriceUSD: 1290, shippingUSD: 35, deliveryDays: '8-12 дней', link: 'https://mediamarkt.de' },
             { id: 'off-asia', store: 'JD.com (China)', region: 'ASIA', basePriceUSD: 1150, shippingUSD: 25, deliveryDays: '12-18 дней', link: 'https://jd.com' },
             { id: 'off-ru', store: 'WowS Express (Russia)', region: 'RU', basePriceUSD: 1490, shippingUSD: 5, deliveryDays: '1-3 дня', link: '#' }
@@ -607,7 +607,7 @@ function performSearch(query) {
             image: 'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=150&q=80', // generic box
             keywords: [lowerQuery],
             offers: [
-                { id: 'off-us', store: 'Amazon (USA)', region: 'US', basePriceUSD: randomPrice, shippingUSD: 30, deliveryDays: '10-14 дней', storeSearchUrl: 'https://www.amazon.com/s?k=' },
+                { id: 'off-us', store: 'Best Buy (USA)', region: 'US', basePriceUSD: randomPrice, shippingUSD: 30, deliveryDays: '10-14 дней', storeSearchUrl: 'https://www.bestbuy.com/site/searchpage.jsp?st=' },
                 { id: 'off-eu', store: 'eBay (Europe)', region: 'EU', basePriceUSD: randomPrice - 10, shippingUSD: 25, deliveryDays: '8-12 дней', storeSearchUrl: 'https://www.ebay.com/sch/i.html?_nkw=' },
                 { id: 'off-asia', store: 'AliExpress (China)', region: 'ASIA', basePriceUSD: randomPrice - 20, shippingUSD: 15, deliveryDays: '15-25 дней', storeSearchUrl: 'https://www.aliexpress.com/w/wholesale-' },
                 { id: 'off-ru', store: 'WowS Express (Russia)', region: 'RU', basePriceUSD: randomPrice + 50, shippingUSD: 5, deliveryDays: '1-3 дня', storeSearchUrl: 'https://market.yandex.ru/search?text=' }
@@ -890,7 +890,7 @@ function openBreakdownModal(offer, prices) {
         actualLink = offer.storeSearchUrl + encodeURIComponent(selectedProduct.title);
     } else {
         // Fallback for static DB items to make them realistic
-        if (offer.store.includes('Amazon')) actualLink = 'https://www.amazon.com/s?k=' + encodeURIComponent(selectedProduct.title);
+        if (offer.store.includes('Best Buy')) actualLink = 'https://www.bestbuy.com/site/searchpage.jsp?st=' + encodeURIComponent(selectedProduct.title);
         else if (offer.store.includes('eBay') || offer.store.includes('BestBuy')) actualLink = 'https://www.ebay.com/sch/i.html?_nkw=' + encodeURIComponent(selectedProduct.title);
         else if (offer.store.includes('AliExpress') || offer.store.includes('Taobao') || offer.store.includes('JD.com') || offer.store.includes('Tmall')) actualLink = 'https://www.aliexpress.com/w/wholesale-' + encodeURIComponent(selectedProduct.title) + '.html';
         else actualLink = 'https://www.google.com/search?q=' + encodeURIComponent(offer.store + ' ' + selectedProduct.title);

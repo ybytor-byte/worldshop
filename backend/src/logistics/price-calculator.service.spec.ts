@@ -45,11 +45,11 @@ describe('PriceCalculatorService', () => {
 
   describe('inferRegion', () => {
     it('returns explicit region when provided', () => {
-      expect(service.inferRegion('https://amazon.com/p', 'CN')).toBe('CN');
+      expect(service.inferRegion('https://bestbuy.com/p', 'CN')).toBe('CN');
     });
 
-    it('detects US from amazon.com', () => {
-      expect(service.inferRegion('https://amazon.com/dp/B09X')).toBe('US');
+    it('detects US from walmart.com', () => {
+      expect(service.inferRegion('https://walmart.com/dp/B09X')).toBe('US');
     });
 
     it('detects US from walmart', () => {
@@ -72,8 +72,8 @@ describe('PriceCalculatorService', () => {
       expect(service.inferRegion('https://market.yandex.ru/product/789')).toBe('RU');
     });
 
-    it('detects DE from amazon.de', () => {
-      expect(service.inferRegion('https://amazon.de/dp/B09Y')).toBe('DE');
+    it('detects DE from mediamarkt.de', () => {
+      expect(service.inferRegion('https://mediamarkt.de/dp/B09Y')).toBe('DE');
     });
 
     it('detects DE from zalando', () => {
