@@ -175,7 +175,7 @@ export default function HomePage() {
       <section className="relative flex-1 flex flex-col justify-center items-center py-20 px-4 text-center overflow-hidden bg-theme-section">
         <div className="absolute inset-0 -z-10 opacity-30" style={{ background: 'radial-gradient(45rem 50rem at top, var(--accent-primary), transparent)' }} />
 
-        <div className="max-w-3xl mx-auto flex flex-col gap-6">
+        <div className="max-w-5xl mx-auto flex flex-col gap-6">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl text-theme-primary">
             Сравнение цен на товары с <span className="gradient-text">ИИ-аналитикой</span>
           </h1>
@@ -253,34 +253,34 @@ export default function HomePage() {
             )}
           </div>
 
-          <div className="mt-6 max-w-md mx-auto w-full">
+          <div className="mt-6 w-full max-w-5xl mx-auto">
             <ImageUpload onResult={setImageResult} />
 
             {imageResult && !imageResult.error && (
-              <div className="mt-3 rounded-xl border shadow-theme p-4 text-left bg-theme-card border-theme">
+              <div className="mt-3 rounded-xl border shadow-theme p-6 text-left bg-theme-card border-theme">
                 {imageResult.identified ? (
                   <>
-                    <p className="text-sm font-semibold text-theme-primary">
+                    <p className="text-base font-bold text-theme-primary mb-4">
                       {imageResult.productName || ''}
                     </p>
 
                     {(imageResult.offers?.length > 0) && (
-                        <div className="mt-3">
-                          <p className="text-[10px] font-semibold uppercase tracking-wide text-theme-muted mb-2">Предложения</p>
+                        <div className="mt-2">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-theme-muted mb-3">Предложения</p>
                           <OffersByRegion offers={imageResult.offers} />
                         </div>
                       )}
                   </>
                 ) : (
-                  <p className="text-xs text-theme-secondary">{imageResult.message || 'Не удалось распознать товар'}</p>
+                  <p className="text-sm text-theme-secondary">{imageResult.message || 'Не удалось распознать товар'}</p>
                 )}
               </div>
             )}
 
             {imageResult?.error && (
-              <div className="mt-3 rounded-xl border p-3 text-center" style={{ background: 'color-mix(in srgb, #ef4444 10%, var(--bg-card))', borderColor: 'color-mix(in srgb, #ef4444 20%, var(--border-color))' }}>
-                <p className="text-xs font-medium" style={{ color: '#ef4444' }}>{imageResult.error}</p>
-                {imageResult.message && <p className="text-[11px] mt-0.5" style={{ color: '#f87171' }}>{imageResult.message}</p>}
+              <div className="mt-3 rounded-xl border p-4 text-center" style={{ background: 'color-mix(in srgb, #ef4444 10%, var(--bg-card))', borderColor: 'color-mix(in srgb, #ef4444 20%, var(--border-color))' }}>
+                <p className="text-sm font-medium" style={{ color: '#ef4444' }}>{imageResult.error}</p>
+                {imageResult.message && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{imageResult.message}</p>}
               </div>
             )}
           </div>

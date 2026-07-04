@@ -16,32 +16,32 @@ function OfferCard({ offer, color }: { offer: any; color: string }) {
       href={offer.url}
       target="_blank"
       rel="noopener"
-      className="flex flex-col gap-1.5 p-3 rounded-xl border transition-all active:scale-[0.97] hover:brightness-110"
+      className="flex flex-col gap-2 p-4 rounded-xl border transition-all active:scale-[0.97] hover:brightness-110"
       style={{
         borderColor: 'var(--border-color)',
         background: 'var(--bg-card)',
       }}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md truncate max-w-[100px]" style={{ background: `${color}18`, color }}>
+        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md truncate max-w-[120px]" style={{ background: `${color}18`, color }}>
           {offer.region}
         </span>
-        <span className="text-xs font-semibold truncate text-theme-primary">{offer.shop}</span>
+        <span className="text-sm font-semibold truncate text-theme-primary">{offer.shop}</span>
       </div>
 
-      <div className="text-lg font-extrabold tracking-tight" style={{ color }}>
+      <div className="text-xl font-extrabold tracking-tight" style={{ color }}>
         {finalPrice}
       </div>
 
-      <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-theme-muted">
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-theme-muted">
         <span>{priceRub}</span>
         {shipping && <span>{shipping} дост.</span>}
         {customs && <span>{customs} пошл.</span>}
       </div>
 
       {offer.deliveryDays && (
-        <div className="text-[10px] text-theme-muted flex items-center gap-1">
-          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="text-xs text-theme-muted flex items-center gap-1">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
           {offer.deliveryDays}
@@ -73,7 +73,7 @@ export default function OffersByRegion({ offers }: { offers: any[] }) {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-3">
         {regionOrder.map(region => {
           const minPrice = Math.min(...grouped[region].map((o: any) => o.finalPrice || Infinity));
           const count = grouped[region].length;
@@ -84,33 +84,28 @@ export default function OffersByRegion({ offers }: { offers: any[] }) {
             <button
               key={region}
               onClick={() => setSelected(isActive ? null : region)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all active:scale-[0.97]"
+              className="flex flex-col items-start gap-1 p-4 rounded-2xl border text-sm font-semibold transition-all active:scale-[0.97] min-w-[140px]"
               style={{
                 borderColor: isActive ? color : 'var(--border-color)',
                 background: isActive ? `${color}12` : 'var(--bg-card)',
                 color: isActive ? color : 'var(--text-primary)',
               }}
             >
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: `${color}18`, color }}>
-                {region}
-              </span>
-              <span className="truncate max-w-[100px]">{REGION_LABELS[region] || region}</span>
-              <span className="font-bold" style={{ color }}>от {minPrice.toLocaleString('ru-RU')} ₽</span>
-              <span className="text-[10px] opacity-60">{count} тов.</span>
-              <svg
-                className="w-3 h-3 shrink-0 transition-transform duration-200"
-                style={{ transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
+              <div className="flex items-center gap-2 w-full">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-lg" style={{ background: `${color}18`, color }}>
+                  {region}
+                </span>
+                <span className="text-xs opacity-60 ml-auto">{count} тов.</span>
+              </div>
+              <span className="text-base truncate w-full">{REGION_LABELS[region] || region}</span>
+              <span className="text-lg font-bold" style={{ color }}>от {minPrice.toLocaleString('ru-RU')} ₽</span>
             </button>
           );
         })}
       </div>
 
       {selectedRegion && (
-        <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}
+        <div className="mt-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
           {grouped[selectedRegion]
             .sort((a: any, b: any) => (a.finalPrice || 0) - (b.finalPrice || 0))
             .map((offer: any, i: number) => (
