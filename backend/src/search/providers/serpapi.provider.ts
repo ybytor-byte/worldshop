@@ -50,8 +50,19 @@ export class SerpApiProvider implements SearchProvider {
     } catch (err) {
       const msg = (err as Error).message;
       this.logger.warn(`Serper failed: ${msg}`);
-      return [];
+      return this.fallbackSearch(query);
     }
+  }
+
+  private fallbackSearch(query: SearchQuery): SearchOffer[] {
+    const q = encodeURIComponent(query.text.replace(/[^a-zA-Zа-яёА-ЯЁ0-9\s\-]/g, '').trim().slice(0, 120));
+    const region = query.region.toUpperCase();
+    const currency = this.regionConfig[region]?.currency || 'USD';
+    return [{
+      shop: 'DNS', price: 0, currency,
+      url: `https://www.dns-shop.ru/search/?q=${q}`,
+      region,
+    }];
   }
 
   private parseResults(data: any, region: string): SearchOffer[] {
