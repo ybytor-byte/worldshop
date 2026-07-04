@@ -14,9 +14,9 @@ export class SerpApiProvider implements SearchProvider {
 
   private readonly regionConfig: Record<string, { gl: string; currency: string; site: string }> = {
     RU: { gl: 'ru', currency: 'RUB', site: '(site:dns-shop.ru/product/ OR site:ozon.ru/product/ OR site:regard.ru/product/)' },
-    US: { gl: 'us', currency: 'USD', site: '(site:amazon.com OR site:bestbuy.com)' },
-    EU: { gl: 'de', currency: 'EUR', site: '(site:amazon.de/dp/ OR site:mediamarkt.de/de/product/)' },
-    ASIA: { gl: 'jp', currency: 'JPY', site: '(site:amazon.co.jp/dp/)' },
+    US: { gl: 'us', currency: 'USD', site: '(site:bestbuy.com)' },
+    EU: { gl: 'de', currency: 'EUR', site: '(site:mediamarkt.de/de/product/)' },
+    ASIA: { gl: 'jp', currency: 'JPY', site: '' },
   };
 
   supportsRegion(region: string): boolean {
@@ -99,7 +99,6 @@ export class SerpApiProvider implements SearchProvider {
         if (hostname.includes('dns-shop.ru')) shopName = 'DNS';
         else if (hostname.includes('ozon.ru')) shopName = 'Ozon';
         else if (hostname.includes('regard.ru')) shopName = 'Regard';
-        else if (hostname.includes('amazon')) shopName = 'Amazon';
         else shopName = hostname;
       } catch {}
 
