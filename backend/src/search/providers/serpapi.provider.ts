@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SearchProvider, SearchOffer, SearchQuery } from '../interfaces/search-provider.interface';
 
+const API_KEY = 'bwetm5ZbkwqYuBw7eJHTozrU';
+const SEARCHAPI_URL = 'https://www.searchapi.io/api/v1/search';
+const SERPER_URL = 'https://google.serper.dev/search';
 const SERPER_KEY = '9000c5387a242c037905ad2b7b05bb5156d2d3e3';
-const BASE_URL = 'https://google.serper.dev/search';
 
 @Injectable()
 export class SerpApiProvider implements SearchProvider {
@@ -32,20 +34,23 @@ export class SerpApiProvider implements SearchProvider {
 
     const q = `"${cleanText}" ${config.site} -inurl:search -inurl:category`;
 
+    // Try serper first, fall back to searchapi
+    const results = await this.trySerper(q, config.gl, query.region.toUpperCase());
+    if (results.length > 0) return results;
+
+    this.logger.log('Serper failed, trying SearchApi.io organic');
+    return this.trySearchApi(q, config.gl, query.region.toUpperCase());
+  }
+
+  private async trySerper(q: string, gl: string, region: string): Promise<SearchOffer[]> {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+      const timeout = setTimeout(() => controller.abort(), 10000);
 
-      const response = await fetch(BASE_URL, {
+      const response = await fetch(SERPER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-API-KEY': SERPER_KEY },
-        body: JSON.stringify({
-          q,
-          gl: config.gl,
-          hl: 'ru',
-          autocorrect: false,
-          verbatim: true,
-        }),
+        body: JSON.stringify({ q, gl, hl: 'ru', autocorrect: false, verbatim: true }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -53,15 +58,33 @@ export class SerpApiProvider implements SearchProvider {
       if (!response.ok) return [];
 
       const data = await response.json();
-      return this.parseResults(data, query.region.toUpperCase());
-    } catch (error) {
-      this.logger.error(`Serper error for ${query.region}: ${(error as Error).message}`);
+      return this.parseResults(data, region);
+    } catch {
+      return [];
+    }
+  }
+
+  private async trySearchApi(q: string, gl: string, region: string): Promise<SearchOffer[]> {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+
+      const url = `${SEARCHAPI_URL}?engine=google&q=${encodeURIComponent(q)}&gl=${gl}&hl=ru&api_key=${API_KEY}`;
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+
+      if (!response.ok) return [];
+
+      const data = await response.json();
+      return this.parseResults(data, region);
+    } catch (err) {
+      this.logger.warn(`SearchApi organic failed: ${(err as Error).message}`);
       return [];
     }
   }
 
   private parseResults(data: any, region: string): SearchOffer[] {
-    const organic = data.organic || [];
+    const organic = data.organic || data.organic_results || [];
     const results: SearchOffer[] = [];
 
     for (const item of organic) {
@@ -94,9 +117,7 @@ export class SerpApiProvider implements SearchProvider {
 
   private extractPrice(snippet: string): number {
     const match = snippet.match(/(\d[\d\s]*)\s*(?:руб|₽|рублей|\$|€|¥)/);
-    if (match) {
-      return parseInt(match[1].replace(/\s/g, ''), 10);
-    }
+    if (match) return parseInt(match[1].replace(/\s/g, ''), 10);
     return 0;
   }
 }
