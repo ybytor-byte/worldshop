@@ -41,7 +41,7 @@ function parseResults(data: any, region: string) {
     });
   }
 
-  return results.slice(0, 10);
+  return results.slice(0, 5);
 }
 
 async function test(queryText: string, region: string) {
@@ -53,7 +53,10 @@ async function test(queryText: string, region: string) {
     .replace(/["']/g, '')
     .trim();
 
-  const q = `"${cleanText}" ${config.site} -inurl:search -inurl:category`;
+  const words = cleanText.split(/\s+/);
+  const quoted = words.map(w => /\d/.test(w) ? `"${w}"` : w).join(' ');
+
+  const q = `${quoted} ${config.site} -inurl:search -inurl:category`;
 
   console.log(`\n=== ${region} ===`);
   console.log(`Query: ${q}`);

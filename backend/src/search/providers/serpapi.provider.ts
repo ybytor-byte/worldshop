@@ -32,7 +32,10 @@ export class SerpApiProvider implements SearchProvider {
       .replace(/["']/g, '')
       .trim();
 
-    const q = `"${cleanText}" ${config.site} -inurl:search -inurl:category`;
+    const words = cleanText.split(/\s+/);
+    const quoted = words.map(w => /\d/.test(w) ? `"${w}"` : w).join(' ');
+
+    const q = `${quoted} ${config.site} -inurl:search -inurl:category`;
 
     // Try serper first, fall back to searchapi
     const results = await this.trySerper(q, config.gl, query.region.toUpperCase());
@@ -111,7 +114,7 @@ export class SerpApiProvider implements SearchProvider {
       });
     }
 
-    return results.slice(0, 10);
+    return results.slice(0, 5);
   }
 
   private extractPrice(snippet: string): number {
