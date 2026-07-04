@@ -2,10 +2,10 @@ const SERPER_KEY = '9000c5387a242c037905ad2b7b05bb5156d2d3e3';
 const BASE_URL = 'https://google.serper.dev/search';
 
 const regionConfig = {
-  RU: { gl: 'ru', currency: 'RUB', site: '(site:dns-shop.ru/product/ OR site:ozon.ru/product/ OR site:regard.ru/product/)' },
-  US: { gl: 'us', currency: 'USD', site: '(site:bestbuy.com)' },
-  EU: { gl: 'de', currency: 'EUR', site: '(site:mediamarkt.de/de/product/)' },
-  ASIA: { gl: 'jp', currency: 'JPY', site: '' },
+    RU: { gl: 'ru', currency: 'RUB', site: 'site:dns-shop.ru/product/' },
+    US: { gl: 'us', currency: 'USD', site: 'site:bestbuy.com' },
+    EU: { gl: 'de', currency: 'EUR', site: 'site:mediamarkt.de/de/product/' },
+    ASIA: { gl: 'jp', currency: 'JPY', site: '' },
 };
 
 function extractPrice(snippet: string): number {
@@ -17,23 +17,19 @@ function extractPrice(snippet: string): number {
 function parseResults(data: any, region: string) {
   const organic = data.organic || [];
   const results: any[] = [];
+  const seenShops = new Set<string>();
 
   for (const item of organic) {
     const link = item.link || '';
     if (!link) continue;
     if (link.includes('/search') || link.includes('/category') || link.includes('?text=')) continue;
 
-    let shopName = 'Store';
-    try {
-      const hostname = new URL(link).hostname.replace('www.', '');
-      if (hostname.includes('dns-shop.ru')) shopName = 'DNS';
-      else if (hostname.includes('ozon.ru')) shopName = 'Ozon';
-      else if (hostname.includes('regard.ru')) shopName = 'Regard';
-      else shopName = hostname;
-    } catch {}
+    if (!link.includes('dns-shop.ru')) continue;
+    if (seenShops.has('DNS')) continue;
+    seenShops.add('DNS');
 
     results.push({
-      shop: shopName,
+      shop: 'DNS',
       price: extractPrice(item.snippet || ''),
       currency: regionConfig[region]?.currency || 'USD',
       url: link,
@@ -41,7 +37,7 @@ function parseResults(data: any, region: string) {
     });
   }
 
-  return results.slice(0, 5);
+  return results;
 }
 
 async function test(queryText: string, region: string) {
@@ -53,10 +49,7 @@ async function test(queryText: string, region: string) {
     .replace(/["']/g, '')
     .trim();
 
-  const words = cleanText.split(/\s+/);
-  const quoted = words.map(w => /\d/.test(w) ? `"${w}"` : w).join(' ');
-
-  const q = `${quoted} ${config.site} -inurl:search -inurl:category`;
+  const q = `${cleanText} ${config.site} -inurl:search -inurl:category`;
 
   console.log(`\n=== ${region} ===`);
   console.log(`Query: ${q}`);

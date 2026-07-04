@@ -13,9 +13,9 @@ export class SerpApiProvider implements SearchProvider {
   private readonly logger = new Logger(SerpApiProvider.name);
 
   private readonly regionConfig: Record<string, { gl: string; currency: string; site: string }> = {
-    RU: { gl: 'ru', currency: 'RUB', site: '(site:dns-shop.ru/product/ OR site:ozon.ru/product/ OR site:regard.ru/product/)' },
-    US: { gl: 'us', currency: 'USD', site: '(site:bestbuy.com)' },
-    EU: { gl: 'de', currency: 'EUR', site: '(site:mediamarkt.de/de/product/)' },
+    RU: { gl: 'ru', currency: 'RUB', site: 'site:dns-shop.ru/product/' },
+    US: { gl: 'us', currency: 'USD', site: 'site:bestbuy.com' },
+    EU: { gl: 'de', currency: 'EUR', site: 'site:mediamarkt.de/de/product/' },
     ASIA: { gl: 'jp', currency: 'JPY', site: '' },
   };
 
@@ -32,10 +32,7 @@ export class SerpApiProvider implements SearchProvider {
       .replace(/["']/g, '')
       .trim();
 
-    const words = cleanText.split(/\s+/);
-    const quoted = words.map(w => /\d/.test(w) ? `"${w}"` : w).join(' ');
-
-    const q = `${quoted} ${config.site} -inurl:search -inurl:category`;
+    const q = `${cleanText} ${config.site} -inurl:search -inurl:category`;
 
     // Try serper first, fall back to searchapi
     const results = await this.trySerper(q, config.gl, query.region.toUpperCase());
@@ -88,6 +85,7 @@ export class SerpApiProvider implements SearchProvider {
 
   private parseResults(data: any, region: string): SearchOffer[] {
     const organic = data.organic || data.organic_results || [];
+    const seenShops = new Set<string>();
     const results: SearchOffer[] = [];
 
     for (const item of organic) {
@@ -96,17 +94,13 @@ export class SerpApiProvider implements SearchProvider {
 
       if (link.includes('/search') || link.includes('/category') || link.includes('?text=')) continue;
 
-      let shopName = 'Store';
-      try {
-        const hostname = new URL(link).hostname.replace('www.', '');
-        if (hostname.includes('dns-shop.ru')) shopName = 'DNS';
-        else if (hostname.includes('ozon.ru')) shopName = 'Ozon';
-        else if (hostname.includes('regard.ru')) shopName = 'Regard';
-        else shopName = hostname;
-      } catch {}
+      if (!link.includes('dns-shop.ru')) continue;
+
+      if (seenShops.has('DNS')) continue;
+      seenShops.add('DNS');
 
       results.push({
-        shop: shopName,
+        shop: 'DNS',
         price: this.extractPrice(item.snippet || ''),
         currency: this.regionConfig[region]?.currency || 'USD',
         url: link,
@@ -114,7 +108,7 @@ export class SerpApiProvider implements SearchProvider {
       });
     }
 
-    return results.slice(0, 5);
+    return results;
   }
 
   private extractPrice(snippet: string): number {
