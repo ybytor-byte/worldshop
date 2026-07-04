@@ -68,6 +68,7 @@ export class SearchApiLensProvider {
     const best = results[0];
     let title = best.title;
     title = title.replace(/\s+/g, ' ').trim();
+    title = title.replace(/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}:\s*/, '');
     title = title.replace(/^Buy\s+/i, '');
     title = title.replace(/\s*[-|]\s*.*$/, '');
     return title.trim();
