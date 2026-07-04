@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { SearchProvider, SearchOffer, SearchQuery } from '../interfaces/search-provider.interface';
 
 const SEARCHAPI_KEY = 'bwetm5ZbkwqYuBw7eJHTozrU';
@@ -35,7 +34,7 @@ export class SerpApiProvider implements SearchProvider {
 
     try {
       const params = new URLSearchParams({
-        engine: 'google_shopping',
+        engine: 'google',
         q: query.text,
         api_key: this.apiKey,
         gl: config.gl,
@@ -53,40 +52,62 @@ export class SerpApiProvider implements SearchProvider {
       }
 
       const data = await response.json();
-      return this.parseShoppingResults(data, query.region.toUpperCase(), query.text);
+      return this.parseResults(data, query.region.toUpperCase(), query.text);
     } catch (error) {
       this.logger.warn(`SearchApi.io request failed: ${(error as Error).message}`);
       return this.fallbackSearch(query);
     }
   }
 
-  private parseShoppingResults(data: any, region: string, queryText?: string): SearchOffer[] {
+  private parseResults(data: any, region: string, queryText?: string): SearchOffer[] {
     const results: SearchOffer[] = [];
     const seen = new Set<string>();
+    const currency = this.regionConfig[region]?.currency || 'USD';
 
-    const items = [
-      ...(data.shopping_ads || []),
-      ...(data.shopping_results || []),
-    ];
+    const organicItems = data.organic_results || [];
 
-    this.logger.log(`SearchApi.io got ${items.length} items for ${region}`);
-
-    for (const item of items.slice(0, 20)) {
-      const price = typeof item.extracted_price === 'number' ? item.extracted_price : 0;
-      if (price <= 0) continue;
-
-      const shop = item.seller || item.source || item.store || 'Store';
-      const link = item.link || item.product_link || '';
+    for (const item of organicItems.slice(0, 15)) {
+      const link = item.link || '';
+      const shop = item.source || item.domain || 'Store';
+      const price = this.extractPrice(item, region);
 
       const key = `${shop}|${price}`;
       if (seen.has(key)) continue;
       seen.add(key);
 
-      const currency = this.regionConfig[region]?.currency || 'USD';
       results.push({ shop, price, currency, url: link, region });
     }
 
+    this.logger.log(`SearchApi.io organic: ${organicItems.length} items, ${results.length} with links`);
+
     return results;
+  }
+
+  private extractPrice(item: any, region: string): number {
+    if (typeof item.extracted_price === 'number' && item.extracted_price > 0) {
+      return item.extracted_price;
+    }
+
+    const extensions = item.rich_snippet?.extensions;
+    if (Array.isArray(extensions) && extensions.length > 0) {
+      for (const ext of extensions) {
+        if (typeof ext !== 'string') continue;
+        const nums = ext.match(/[\d\s]+[\d]/g);
+        if (nums) {
+          const parsed = parseFloat(nums[0].replace(/\s/g, '').replace(/,/g, '.'));
+          if (!isNaN(parsed) && parsed > 0) return parsed;
+        }
+      }
+    }
+
+    const snippet = item.snippet || '';
+    const snippetNums = snippet.match(/[\d]{2,}[\s\d]*\s*(?:руб|₽|\$|€|¥|USD|EUR)/i);
+    if (snippetNums) {
+      const parsed = parseFloat(snippetNums[0].replace(/\s/g, ''));
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+
+    return 0;
   }
 
   private fallbackSearch(query: SearchQuery): SearchOffer[] {
