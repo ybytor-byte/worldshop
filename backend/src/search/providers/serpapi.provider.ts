@@ -11,10 +11,10 @@ export class SerpApiProvider implements SearchProvider {
   private readonly logger = new Logger(SerpApiProvider.name);
 
   private readonly regionConfig: Record<string, { gl: string; currency: string; site: string }> = {
-    RU: { gl: 'ru', currency: 'RUB', site: 'site:dns-shop.ru/product/' },
-    US: { gl: 'us', currency: 'USD', site: '' },
-    EU: { gl: 'de', currency: 'EUR', site: '' },
-    ASIA: { gl: 'jp', currency: 'JPY', site: '' },
+    RU: { gl: 'ru', currency: 'RUB', site: '(site:dns-shop.ru/product/ OR site:ozon.ru/product/ OR site:regard.ru/product/)' },
+    US: { gl: 'us', currency: 'USD', site: '(site:amazon.com OR site:bestbuy.com)' },
+    EU: { gl: 'de', currency: 'EUR', site: '(site:amazon.de/dp/ OR site:mediamarkt.de/de/product/)' },
+    ASIA: { gl: 'jp', currency: 'JPY', site: '(site:amazon.co.jp/dp/)' },
   };
 
   supportsRegion(region: string): boolean {
@@ -25,74 +25,78 @@ export class SerpApiProvider implements SearchProvider {
     const config = this.regionConfig[query.region.toUpperCase()];
     if (!config) return [];
 
-    const q = config.site ? `${query.text} ${config.site}` : query.text;
+    let cleanText = query.text
+      .replace(/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}:\s*/, '')
+      .replace(/["']/g, '')
+      .trim();
+
+    const q = `"${cleanText}" ${config.site} -inurl:search -inurl:category`;
 
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
+      const timeout = setTimeout(() => controller.abort(), 15000);
 
       const response = await fetch(BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-API-KEY': SERPER_KEY },
-        body: JSON.stringify({ q, gl: config.gl }),
+        body: JSON.stringify({
+          q,
+          gl: config.gl,
+          hl: 'ru',
+          autocorrect: false,
+          verbatim: true,
+        }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
 
-      if (!response.ok) {
-        this.logger.warn(`Serper returned ${response.status}`);
-        return [];
-      }
+      if (!response.ok) return [];
 
       const data = await response.json();
-      this.logger.log(`Serper OK: ${(data.organic||[]).length} results for "${q}"`);
       return this.parseResults(data, query.region.toUpperCase());
-    } catch (err) {
-      const msg = (err as Error).message;
-      this.logger.warn(`Serper failed: ${msg}`);
-      return this.fallbackSearch(query);
+    } catch (error) {
+      this.logger.error(`Serper error for ${query.region}: ${(error as Error).message}`);
+      return [];
     }
-  }
-
-  private fallbackSearch(query: SearchQuery): SearchOffer[] {
-    const q = encodeURIComponent(query.text.replace(/[^a-zA-Zа-яёА-ЯЁ0-9\s\-]/g, '').trim().slice(0, 120));
-    const region = query.region.toUpperCase();
-    const currency = this.regionConfig[region]?.currency || 'USD';
-    return [{
-      shop: 'DNS', price: 0, currency,
-      url: `https://www.dns-shop.ru/search/?q=${q}`,
-      region,
-    }];
   }
 
   private parseResults(data: any, region: string): SearchOffer[] {
     const organic = data.organic || [];
-    const currency = this.regionConfig[region]?.currency || 'USD';
     const results: SearchOffer[] = [];
 
-    for (const item of organic.slice(0, 10)) {
+    for (const item of organic) {
       const link = item.link || '';
       if (!link) continue;
 
-      const urlLower = link.toLowerCase();
-      let shop = 'DNS';
-      if (urlLower.includes('re-store.ru')) shop = 'Re-store';
-      else if (urlLower.includes('ozon.ru')) shop = 'Ozon';
-      else if (urlLower.includes('regard.ru')) shop = 'Regard';
-      else if (urlLower.includes('citilink.ru')) shop = 'Citilink';
-      else if (urlLower.includes('mvideo.ru')) shop = 'M.Video';
-      else if (urlLower.includes('biggeek.ru')) shop = 'BigGeek';
-      else if (urlLower.includes('wildberries.ru')) shop = 'Wildberries';
-      else if (urlLower.includes('apple.com')) shop = 'Apple';
-      else if (urlLower.includes('bestbuy.com')) shop = 'Best Buy';
-      else if (urlLower.includes('amazon.com')) shop = 'Amazon';
-      else if (urlLower.includes('walmart.com')) shop = 'Walmart';
-      else if (urlLower.includes('ebay.com')) shop = 'eBay';
-      else if (urlLower.includes('mediamarkt.de')) shop = 'MediaMarkt';
+      if (link.includes('/search') || link.includes('/category') || link.includes('?text=')) continue;
 
-      results.push({ shop, price: 0, currency, url: link, region });
+      let shopName = 'Store';
+      try {
+        const hostname = new URL(link).hostname.replace('www.', '');
+        if (hostname.includes('dns-shop.ru')) shopName = 'DNS';
+        else if (hostname.includes('ozon.ru')) shopName = 'Ozon';
+        else if (hostname.includes('regard.ru')) shopName = 'Regard';
+        else if (hostname.includes('amazon')) shopName = 'Amazon';
+        else shopName = hostname;
+      } catch {}
+
+      results.push({
+        shop: shopName,
+        price: this.extractPrice(item.snippet || ''),
+        currency: this.regionConfig[region]?.currency || 'USD',
+        url: link,
+        region,
+      });
     }
 
-    return results;
+    return results.slice(0, 10);
+  }
+
+  private extractPrice(snippet: string): number {
+    const match = snippet.match(/(\d[\d\s]*)\s*(?:руб|₽|рублей|\$|€|¥)/);
+    if (match) {
+      return parseInt(match[1].replace(/\s/g, ''), 10);
+    }
+    return 0;
   }
 }
